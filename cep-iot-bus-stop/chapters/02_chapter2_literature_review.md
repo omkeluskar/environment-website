@@ -52,7 +52,7 @@ Arduino IDE, Blynk, Python 3, scikit-learn, Open-Meteo, Telegram, CSV, editor
 ESP32, VL53L0X (21/22), DHT22 (4), LEDs 25/26 + 220Ω, buzzer wired firmware-disabled
 
 ## 2.12 Project Schedule
-Phased CEP timeline + demo milestones
+Phased CEP timeline + demo milestones + **Figure 2.1 Gantt chart** (`gantt_chart_2_12.png`, embedded in PDF)
 
 ## 2.13 Development Methodology
 Agile / iterative; rejected auto-decay and reset-to-zero
