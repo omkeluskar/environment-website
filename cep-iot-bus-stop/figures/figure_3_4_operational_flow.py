@@ -7,7 +7,7 @@ Content locked to the 11 Aug 2026 master project spec.
 import os
 import matplotlib.pyplot as plt
 from matplotlib.patches import (
-    Rectangle, FancyBboxPatch, FancyArrowPatch, Circle, Arc, Polygon, FancyBboxPatch as FBP,
+    Rectangle, FancyBboxPatch, FancyArrowPatch, Circle, Arc, Polygon,
 )
 
 OUT_DIR = os.path.dirname(os.path.abspath(__file__))
