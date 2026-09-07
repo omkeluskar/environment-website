@@ -271,10 +271,10 @@ def draw_page(c, *, title, questions, page_no, logo_path):
 def build_pdfs(logo):
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     c = canvas.Canvas(str(SURVEY_PDF), pagesize=letter)
-    draw_page(c, title="Survey Questionnaire", questions=SURVEY, page_no=89, logo_path=logo)
+    draw_page(c, title="Survey Questionnaire", questions=SURVEY, page_no=94, logo_path=logo)
     c.save()
     c = canvas.Canvas(str(FEEDBACK_PDF), pagesize=letter)
-    draw_page(c, title="Feedback Questionnaire", questions=FEEDBACK, page_no=90, logo_path=logo)
+    draw_page(c, title="Feedback Questionnaire", questions=FEEDBACK, page_no=95, logo_path=logo)
     c.save()
     print("wrote", SURVEY_PDF, FEEDBACK_PDF)
 
@@ -443,8 +443,8 @@ var FEEDBACK_ITEMS_ = [
 def main():
     logo = prepare_logo()
     build_pdfs(logo)
-    build_docx(SURVEY_DOCX, "Survey Questionnaire", SURVEY, 89)
-    build_docx(FEEDBACK_DOCX, "Feedback Questionnaire", FEEDBACK, 90)
+    build_docx(SURVEY_DOCX, "Survey Questionnaire", SURVEY, 94)
+    build_docx(FEEDBACK_DOCX, "Feedback Questionnaire", FEEDBACK, 95)
     script = ROOT / "scripts/Create_CEP_Google_Forms.gs"
     script.write_text(APPS_SCRIPT)
     print("wrote", script)

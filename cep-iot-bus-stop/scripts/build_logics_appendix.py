@@ -367,7 +367,7 @@ def build_word(image_paths):
     fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
     add_page_field(fp)
     pg = OxmlElement("w:pgNumType")
-    pg.set(qn("w:start"), "91")
+    pg.set(qn("w:start"), "89")
     sec._sectPr.append(pg)
 
     for i, (heading, blurb, _fn, _code, _lex, caption) in enumerate(PAGES):
@@ -415,7 +415,7 @@ def main():
     pdf_path = CH / "Appendix_A_System_Logic.pdf"
     c = canvas.Canvas(str(pdf_path), pagesize=letter)
     for i, page in enumerate(PAGES):
-        draw_pdf_page(c, page[0], page[1], images[i], page[5], 91 + i)
+        draw_pdf_page(c, page[0], page[1], images[i], page[5], 89 + i)
         c.showPage()
     c.save()
     print("wrote", pdf_path)
