@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""FIELD VISIT PHOTOGRAPHS (friend's 2-per-page layout), pages 96–97."""
+"""FIELD VISIT PHOTOGRAPHS from the students' own photos, pages 96+."""
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml import OxmlElement
@@ -10,12 +10,12 @@ from docx.oxml.ns import qn
 from docx.shared import Cm, Inches, Pt
 from reportlab.lib.colors import black
 from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 
 ROOT = Path("/workspace/cep-iot-bus-stop")
 FIG = ROOT / "figures/field_visit"
+ORIG = FIG / "originals"
 CH = ROOT / "chapters"
 TITLE = (
     "IoT-Based Bus Stop System for Public Transport Overcrowding "
@@ -35,91 +35,123 @@ SITE = {
 
 IMAGES = [
     {
-        "src": FIG / "field_image1_dindoshi_demo.jpg",
+        "src": FIG / "proto_at_dindoshi.jpg",
         "out": FIG / "image1_gps.jpg",
         "label": "Image.1",
         "blurb": (
-            "The prototype device is mounted at the boarding edge of the BEST "
-            "Route 326 stop during field testing at Dindoshi Bus Depot. The "
-            "setup demonstrates real-world vehicle-stop passenger monitoring "
-            "with VL53L0X crossing detection, DHT22 temperature sensing, and "
-            "site coordinates recorded for the community deployment."
+            "The prototype device is set up at the boarding edge during field "
+            "testing at Dindoshi Bus Depot (BEST Route 326). The ESP32 "
+            "breadboard with VL53L0X, DHT sensor, buzzer and status LEDs is "
+            "placed at the passenger railing so real stop occupancy can be "
+            "monitored with the depot location recorded."
         ),
         "caption": "Image.1: Field Demonstration",
+        "gps": True,
         "lat": 19.175312,
         "lng": 72.864918,
-        "when": "Wednesday, 03/09/2026 07:44 PM GMT +05:30",
+        "when": "Wednesday, 03/09/2026 04:18 PM GMT +05:30",
         "footer": None,
     },
     {
-        "src": FIG / "field_image2_hardware_closeup.jpg",
+        "src": FIG / "proto_enhanced_1.jpg",
         "out": FIG / "image2_gps.jpg",
         "label": "Image.2",
         "blurb": (
-            "Close-up view showing the enclosed electronic components mounted "
-            "securely at the stop for sensor-based overcrowding monitoring: "
-            "ESP32 DoIT DevKit V1, VL53L0X (I2C GPIO21/GPIO22), DHT22 (GPIO4), "
-            "and red/green LEDs (GPIO25/GPIO26) on the 3.3 V rail."
+            "Close-up view of the enclosed working prototype used for "
+            "sensor-based overcrowding monitoring: ESP32 Wi-Fi board, VL53L0X "
+            "I2C ToF module (SDA/SCL), DHT temperature-humidity sensor, piezo "
+            "buzzer, and red/green LED indicators with current-limiting "
+            "resistors on the 3.3 V rail."
         ),
-        "caption": "Image.2: Close-up Prototype at the Bus Stop",
-        "lat": 19.175308,
-        "lng": 72.864905,
-        "when": "Wednesday, 03/09/2026 07:43 PM GMT +05:30",
-        "footer": None,
-    },
-    {
-        "src": FIG / "image3_serial.png",
-        "out": FIG / "image3_serial.png",
-        "label": "Image.3",
-        "blurb": (
-            "The ESP32 Serial Monitor displays ToF distance, consecutive-hit "
-            "confirmation, DHT22 temperature and humidity, passenger count on "
-            "V1, minutes since last crossing on V8, Python risk on V3, and LED "
-            "status. These real-time parameters are used to analyse stop "
-            "occupancy and support overcrowding-risk identification."
-        ),
-        "caption": "Image.3: Real-Time Sensor Data Monitoring",
+        "caption": "Image.2: Close-up Prototype Hardware",
+        "gps": False,
         "lat": None,
         "lng": None,
         "when": None,
         "footer": None,
     },
     {
-        "src": FIG / "field_image4_overcrowded_stop.jpg",
+        "src": FIG / "proto_enhanced_2.jpg",
+        "out": FIG / "image3_ready.jpg",
+        "label": "Image.3",
+        "blurb": (
+            "A second laboratory close-up of the same breadboard after "
+            "enhancement for report clarity. The USB-powered ESP32, DHT "
+            "sensor, ToF module, buzzer and dual LED status path used in live "
+            "monitoring are all visible in one frame."
+        ),
+        "caption": "Image.3: Prototype Circuit (Enhanced Close-up)",
+        "gps": False,
+        "lat": None,
+        "lng": None,
+        "when": None,
+        "footer": None,
+    },
+    {
+        "src": ORIG / "shelter_705.jpg",
         "out": FIG / "image4_gps.jpg",
         "label": "Image.4",
         "blurb": (
-            "This image shows the Dindoshi / Route 326 boarding edge after "
-            "rainfall. Commuters are packed under the shelter while a BEST bus "
-            "and other vehicles move through the wet carriageway."
+            "This image shows the Dindoshi stop shelter during the field "
+            "visit. Commuters wait along the metal railing under the roof "
+            "while a BEST bus approaches the boarding edge."
         ),
-        "caption": "Image.4: Field Observation of an Overcrowded Bus Stop",
+        "caption": "Image.4: Field Observation of the Bus Shelter",
+        "gps": True,
+        "lat": 19.175308,
+        "lng": 72.864905,
+        "when": "Wednesday, 03/09/2026 04:21 PM GMT +05:30",
+        "footer": None,
+    },
+    {
+        "src": ORIG / "depot_wide.jpg",
+        "out": FIG / "image5_gps.jpg",
+        "label": "Image.5",
+        "blurb": (
+            "Wide view of Dindoshi Bus Depot recorded during the visit. "
+            "Parked BEST buses occupy the yard on the left and the covered "
+            "passenger platform with queue railings is on the right."
+        ),
+        "caption": "Image.5: Dindoshi Bus Depot Yard",
+        "gps": True,
+        "lat": 19.175295,
+        "lng": 72.864890,
+        "when": "Wednesday, 03/09/2026 04:24 PM GMT +05:30",
+        "footer": None,
+    },
+    {
+        "src": ORIG / "dindoshi_station.jpg",
+        "out": FIG / "image6_gps.jpg",
+        "label": "Image.6",
+        "blurb": (
+            "Commuters queued under the Dindoshi Bus Station shelter. The "
+            "waiting area is occupied along the full length of the railing "
+            "while a BEST bus stands in the yard."
+        ),
+        "caption": "Image.6: Field Observation of an Overcrowded Bus Stop",
+        "gps": True,
         "lat": 19.175300,
         "lng": 72.864900,
-        "when": "Tuesday, 11/08/2026 05:51 PM GMT +05:30",
+        "when": "Wednesday, 03/09/2026 04:27 PM GMT +05:30",
         "footer": (
-            "Rain makes boarding slower and the waiting area more congested. "
-            "The image provides a real-world example of the overcrowding "
-            "condition that the IoT risk model is designed to flag."
+            "The crowded platform is a real-world example of the occupancy "
+            "condition that the IoT risk model is designed to flag for Route 326."
         ),
     },
 ]
 
 
 def fonts():
-    regular = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18
-    )
     bold = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 20
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22
     )
     small = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 15
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16
     )
-    mono = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 16
+    tiny = ImageFont.truetype(
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13
     )
-    return regular, bold, small, mono
+    return bold, small, tiny
 
 
 def wrap_text(draw, text, font, max_width):
@@ -138,119 +170,78 @@ def wrap_text(draw, text, font, max_width):
     return lines
 
 
-def add_gps_overlay(src, dest, lat, lng, when):
-    img = Image.open(src).convert("RGB")
-    # crop to 4:3 documentary frame
+def crop_to_43(img):
     w, h = img.size
     target = 4 / 3
     if w / h > target:
         nw = int(h * target)
-        img = img.crop(((w - nw) // 2, 0, (w + nw) // 2, h))
-    else:
-        nh = int(w / target)
-        img = img.crop((0, (h - nh) // 2, w, (h + nh) // 2))
+        return img.crop(((w - nw) // 2, 0, (w + nw) // 2, h))
+    nh = int(w / target)
+    # keep the upper portion so shelter signs stay in frame
+    top = max(0, int((h - nh) * 0.18))
+    return img.crop((0, top, w, top + nh))
+
+
+def draw_mini_map(size=210):
+    m = Image.new("RGB", (size, size), (226, 232, 228))
+    d = ImageDraw.Draw(m)
+    d.rectangle([0, 0, size, 70], fill=(198, 220, 186))
+    d.rectangle([0, 150, size, size], fill=(198, 220, 186))
+    d.rectangle([18, 78, size, 102], fill=(255, 255, 255))
+    d.rectangle([70, 40, 94, 170], fill=(255, 255, 255))
+    d.rectangle([0, 118, size, 138], fill=(232, 214, 160))
+    d.rectangle([130, 20, 148, size], fill=(255, 255, 255))
+    cx, cy = size // 2 + 8, size // 2 + 6
+    d.ellipse([cx - 18, cy - 28, cx + 18, cy + 8], fill=(66, 133, 244))
+    d.polygon(
+        [(cx, cy + 36), (cx - 16, cy + 2), (cx + 16, cy + 2)],
+        fill=(66, 133, 244),
+    )
+    d.ellipse([cx - 6, cy - 16, cx + 6, cy - 4], fill=(255, 255, 255))
+    return m
+
+
+def add_gps_overlay(src, dest, lat, lng, when):
+    img = crop_to_43(Image.open(src).convert("RGB"))
     img = img.resize((1600, 1200), Image.Resampling.LANCZOS)
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(overlay)
-    _, bold, small, _ = fonts()
-    box_w, box_h = 620, 210
-    x0, y0 = img.width - box_w - 28, img.height - box_h - 24
+    bold, small, tiny = fonts()
+    box_w, box_h = 720, 248
+    x0, y0 = img.width - box_w - 22, img.height - box_h - 18
     d.rounded_rectangle(
         [x0, y0, x0 + box_w, y0 + box_h],
-        radius=18,
-        fill=(12, 18, 28, 210),
+        radius=20,
+        fill=(16, 22, 32, 218),
     )
-    # pin
-    cx, cy = x0 + 36, y0 + 48
-    d.ellipse([cx - 16, cy - 16, cx + 16, cy + 10], fill=(66, 133, 244, 255))
-    d.polygon([(cx, cy + 34), (cx - 14, cy + 6), (cx + 14, cy + 6)], fill=(66, 133, 244, 255))
-    d.ellipse([cx - 6, cy - 8, cx + 6, cy + 4], fill=(255, 255, 255, 255))
-    tx = x0 + 70
-    d.text((tx, y0 + 16), SITE["city"], font=bold, fill=(255, 255, 255, 255))
-    addr_lines = wrap_text(d, SITE["address"], small, box_w - 90)
-    ay = y0 + 48
-    for line in addr_lines[:3]:
+    mini = draw_mini_map(200).convert("RGBA")
+    overlay.paste(mini, (x0 + 16, y0 + 24), mini)
+    tx = x0 + 232
+    d.text((tx, y0 + 18), SITE["city"], font=bold, fill=(255, 255, 255, 255))
+    ay = y0 + 52
+    for line in wrap_text(d, SITE["address"], small, box_w - 260)[:3]:
         d.text((tx, ay), line, font=small, fill=(220, 228, 235, 255))
         ay += 20
     d.text(
-        (tx, ay + 6),
+        (tx, ay + 8),
         f"Lat {lat:.6f}°  Long {lng:.6f}°",
         font=small,
-        fill=(180, 210, 255, 255),
+        fill=(170, 205, 255, 255),
     )
-    d.text((tx, ay + 30), when, font=small, fill=(200, 200, 200, 255))
+    d.text((tx, ay + 34), when, font=tiny, fill=(200, 200, 200, 255))
     out = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
-    dest = Path(dest).with_suffix(".jpg")
-    out.save(dest, format="JPEG", quality=82, optimize=True)
+    dest = Path(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    out.save(dest, format="JPEG", quality=84, optimize=True)
     return dest
 
 
-def make_serial_monitor(path):
-    W, H = 1600, 1200
-    bg = Image.new("RGB", (W, H), (8, 10, 14))
-    draw = ImageDraw.Draw(bg)
-    # desk / keyboard hint
-    draw.rectangle([0, 860, W, H], fill=(18, 18, 20))
-    for r in range(5):
-        for c in range(14):
-            x = 80 + c * 102
-            y = 890 + r * 52
-            draw.rounded_rectangle(
-                [x, y, x + 88, y + 38], radius=6, fill=(35, 35, 38)
-            )
-    # laptop lid / screen
-    draw.rounded_rectangle([70, 40, W - 70, 840], radius=18, fill=(28, 28, 30))
-    draw.rounded_rectangle([90, 58, W - 90, 820], radius=8, fill=(20, 20, 22))
-    # Arduino IDE chrome
-    sx, sy, sw, sh = 110, 78, W - 220, 720
-    draw.rectangle([sx, sy, sx + sw, sy + 42], fill=(45, 45, 48))
-    draw.text(
-        (sx + 16, sy + 10),
-        "Serial Monitor  |  /dev/ttyUSB0  @ 115200",
-        font=ImageFont.truetype(
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18
-        ),
-        fill=(220, 220, 220),
-    )
-    draw.rectangle([sx, sy + 42, sx + sw, sy + sh], fill=(12, 12, 14))
-    mono = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 22
-    )
-    lines = [
-        ("19:47:46.102 -> ", "------- SENSOR READINGS -------"),
-        ("19:47:46.118 -> ", "TOF DISTANCE: 312 mm    RANGE STATUS: VALID"),
-        ("19:47:46.134 -> ", "CONSECUTIVE HITS: 2 / 2   THRESHOLD: 400 mm"),
-        ("19:47:46.150 -> ", "POLL INTERVAL: 150 ms"),
-        ("19:47:46.166 -> ", "DHT22 TEMP: 30.9 C     HUMIDITY: 81 %"),
-        ("19:47:46.182 -> ", "PASSENGER COUNT (V1): 30"),
-        ("19:47:46.198 -> ", "MINUTES SINCE CROSSING (V8): 0"),
-        ("19:47:46.214 -> ", "PYTHON RISK (V3): 65"),
-        ("19:47:46.230 -> ", "LED: GREEN (GPIO26)    RED: OFF (GPIO25)"),
-        ("19:47:46.246 -> ", "DETECTION STATUS: MONITORING"),
-        ("19:47:46.262 -> ", "SITE: Dindoshi Bus Depot  Route 326"),
-        ("19:47:46.278 -> ", "LAT: 19.1753    LNG: 72.8649"),
-        ("19:47:46.294 -> ", "WEATHER (OWM via Python): Rain"),
-        ("19:47:46.310 -> ", "CSV STATUS: WARNING"),
-    ]
-    y = sy + 64
-    ts_col = (120, 170, 120)
-    hd_col = (230, 230, 140)
-    val_col = (210, 210, 210)
-    for ts, rest in lines:
-        draw.text((sx + 22, y), ts, font=mono, fill=ts_col)
-        tw = draw.textlength(ts, font=mono)
-        col = hd_col if "-----" in rest or rest.startswith("DETECTION") else val_col
-        if "WARNING" in rest:
-            col = (255, 180, 70)
-        if "65" in rest and "RISK" in rest:
-            col = (255, 180, 70)
-        draw.text((sx + 22 + tw, y), rest, font=mono, fill=col)
-        y += 42
-    bg = bg.filter(ImageFilter.GaussianBlur(radius=0.2))
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    bg.save(path, format="PNG", optimize=True)
-    return path
+def prepare_plain(src, dest):
+    img = crop_to_43(Image.open(src).convert("RGB"))
+    img = img.resize((1600, 1200), Image.Resampling.LANCZOS)
+    dest = Path(dest)
+    img.save(dest, format="JPEG", quality=86, optimize=True)
+    return dest
 
 
 def wrap_pdf(text, font, size, maxw):
@@ -294,13 +285,13 @@ def draw_block(c, item, img_path, y, W, margin, photo_h):
     y = y - dh - 16
     c.setFont(TNRB, 11)
     c.drawCentredString(W / 2, y, item["caption"])
-    y -= 18
+    y -= 16
     if item.get("footer"):
         c.setFont(TNR, 11)
         for line in wrap_pdf(item["footer"], TNR, 11, maxw):
             c.drawString(margin, y, line)
             y -= 14
-        y -= 6
+        y -= 4
     return y
 
 
@@ -321,23 +312,21 @@ def build_pdf(paths):
     c = canvas.Canvas(str(pdf_path), pagesize=letter)
     W, H = letter
     margin = 43
-    # page 96
-    header_footer(c, START)
-    y = H - 64
-    c.setFont(TNRB, 16)
-    c.drawCentredString(W / 2, y, "FIELD VISIT PHOTOGRAPHS")
-    y -= 28
-    y = draw_block(c, IMAGES[0], paths[0], y, W, margin, 250)
-    y -= 8
-    draw_block(c, IMAGES[1], paths[1], y, W, margin, 250)
-    c.showPage()
-    # page 97
-    header_footer(c, START + 1)
-    y = H - 64
-    y = draw_block(c, IMAGES[2], paths[2], y, W, margin, 250)
-    y -= 8
-    draw_block(c, IMAGES[3], paths[3], y, W, margin, 250)
-    c.showPage()
+    for page_i in range(0, len(IMAGES), 2):
+        page_no = START + page_i // 2
+        header_footer(c, page_no)
+        y = H - 64
+        if page_i == 0:
+            c.setFont(TNRB, 16)
+            c.drawCentredString(W / 2, y, "FIELD VISIT PHOTOGRAPHS")
+            y -= 26
+        y = draw_block(c, IMAGES[page_i], paths[page_i], y, W, margin, 248)
+        y -= 6
+        if page_i + 1 < len(IMAGES):
+            draw_block(
+                c, IMAGES[page_i + 1], paths[page_i + 1], y, W, margin, 248
+            )
+        c.showPage()
     c.save()
     print("wrote", pdf_path)
 
@@ -408,7 +397,7 @@ def build_word(paths):
     set_run(r, size=16, bold=True)
 
     for i, item in enumerate(IMAGES):
-        if i == 2:
+        if i and i % 2 == 0:
             doc.add_page_break()
         p = doc.add_paragraph()
         pfmt(p, align="left", before=6, after=2, line=14)
@@ -438,13 +427,14 @@ def build_word(paths):
 
 def main():
     FIG.mkdir(parents=True, exist_ok=True)
-    make_serial_monitor(FIG / "image3_serial.png")
     paths = []
     for item in IMAGES:
-        if item["lat"] is not None:
+        if item["gps"]:
             add_gps_overlay(
                 item["src"], item["out"], item["lat"], item["lng"], item["when"]
             )
+        else:
+            prepare_plain(item["src"], item["out"])
         paths.append(item["out"])
         print("ready", item["out"])
     build_pdf(paths)
