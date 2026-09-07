@@ -26,6 +26,6 @@ Page numbers continue after Chapter 7: **86–88**.
 
 11. Tech at Home, “Introduction to ESP32 - Getting Started | IoT Tutorials with ESP32 and Adafruit IO for Beginners,” YouTube. [Online Video]. https://www.youtube.com/watch?v=dcMj8MWzJYk
 
-12. “Survey Form for IoT-Based Bus Stop System for Public Transport Overcrowding Prediction Using Machine Learning,” Google Forms. Conducted: Jul. 2026. [Online]. *(paste live form URL)*
+12. “Survey Form for IoT-Based Bus Stop System for Public Transport Overcrowding Prediction Using Machine Learning,” Google Forms. Conducted: Jul. 2026. [Online]. https://docs.google.com/forms/d/e/1FAIpQLSe1pXC0DwTRz2NLJ_oS6b2FFWWYmC9iJmTxdd4TBqYsoH6CHw/viewform
 
-13. “Community Feedback Form for IoT-Based Bus Stop System for Public Transport Overcrowding Prediction Using Machine Learning,” Google Forms. Conducted: Jul. 2026. [Online]. *(paste live form URL)*
+13. “Community Feedback Form for IoT-Based Bus Stop System for Public Transport Overcrowding Prediction Using Machine Learning,” Google Forms. Conducted: Jul. 2026. [Online]. https://docs.google.com/forms/d/e/1FAIpQLSdpJwxrxc6T0Tf-GYctpIiKUUlcPdB5d_HhPw07ZDOkjEFIjw/viewform

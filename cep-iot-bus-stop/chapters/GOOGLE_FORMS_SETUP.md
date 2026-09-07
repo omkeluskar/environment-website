@@ -1,32 +1,15 @@
-# Google Forms — 2-minute setup
+# Google Forms (live)
 
-Google Forms can only be created while **you** are logged into Google. This project cannot open your Gmail.
+Created on the project Google account. Use the **view** links for respondents and for References [12]–[13]. Keep the **edit** links private.
 
-## Fastest way
+## Survey (community overcrowding)
 
-1. Open https://script.google.com (your college/Gmail account).
-2. **New project** → delete the stub → paste `scripts/Create_CEP_Google_Forms.gs`.
-3. Run **createBothForms** → Allow permissions.
-4. **Executions** / **Logs** will show:
-   - Survey view + edit links
-   - Feedback view + edit links
-5. Send those two view links back so they can be dropped into References [12] and [13].
+- View: https://docs.google.com/forms/d/e/1FAIpQLSe1pXC0DwTRz2NLJ_oS6b2FFWWYmC9iJmTxdd4TBqYsoH6CHw/viewform
+- Edit: https://docs.google.com/forms/d/1fFrk8mZtcaVQLIjz9kzcns0_Ky7IMM291nohm5KOI-Q/edit
 
-## Manual way (same 12+12 questions)
+## Feedback (after seeing the prototype)
 
-Create two forms at https://forms.google.com (turn **Collect email addresses** off).
+- View: https://docs.google.com/forms/d/e/1FAIpQLSdpJwxrxc6T0Tf-GYctpIiKUUlcPdB5d_HhPw07ZDOkjEFIjw/viewform
+- Edit: https://docs.google.com/forms/d/1DpLxd4uBU0EKhbbcAs-gTplsH-EokZWwp5Uy5dAmq3o/edit
 
-**Form 1 title:** CEP Survey Questionnaire – IoT Bus Stop Overcrowding Prediction  
-**Form 2 title:** CEP Feedback Questionnaire – IoT Bus Stop Overcrowding Prediction  
-
-Description for both:
-
-```
-Nirmala Memorial Foundation College of Commerce and Science (Autonomous)
-Department of Information Technology
-Students: Mr. Om Keluskar (24TIT078), Mr. Jashith Agre (24TIT011)
-Project: IoT-Based Bus Stop System for Public Transport Overcrowding Prediction Using Machine Learning
-Site: Dindoshi Bus Depot, BEST Route 326
-```
-
-Add **Name of Participant** (short answer, required), then copy the 12 questions from the matching PDF.
+To recreate the forms later, run `scripts/Create_CEP_Google_Forms.gs` in https://script.google.com.

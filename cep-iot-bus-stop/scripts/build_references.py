@@ -304,14 +304,11 @@ def build():
             ("[12] “Survey Form for IoT-Based Bus Stop System for Public Transport Overcrowding Prediction Using Machine Learning,” Google Forms. Conducted: Jul. 2026. [Online].", False),
         ],
     )
-    p = doc.add_paragraph()
-    pfmt(p, align="left", before=0, after=6, line=16)
-    r = p.add_run("Available - ")
-    set_run(r, size=12)
-    r2 = p.add_run("(paste your 25-commuter survey Google Form link here)")
-    set_run(r2, size=12, italic=True)
-
-    doc.add_page_break()
+    add_link_line(
+        doc,
+        "Available",
+        "https://docs.google.com/forms/d/e/1FAIpQLSe1pXC0DwTRz2NLJ_oS6b2FFWWYmC9iJmTxdd4TBqYsoH6CHw/viewform",
+    )
 
     add_heading_label(doc, "Community Feedback Form –")
     add_citation_parts(
@@ -320,12 +317,11 @@ def build():
             ("[13] “Community Feedback Form for IoT-Based Bus Stop System for Public Transport Overcrowding Prediction Using Machine Learning,” Google Forms. Conducted: Jul. 2026. [Online].", False),
         ],
     )
-    p = doc.add_paragraph()
-    pfmt(p, align="left", before=0, after=6, line=16)
-    r = p.add_run("Available - ")
-    set_run(r, size=12)
-    r2 = p.add_run("(paste your post-deployment feedback Google Form link here)")
-    set_run(r2, size=12, italic=True)
+    add_link_line(
+        doc,
+        "Available",
+        "https://docs.google.com/forms/d/e/1FAIpQLSdpJwxrxc6T0Tf-GYctpIiKUUlcPdB5d_HhPw07ZDOkjEFIjw/viewform",
+    )
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     doc.save(OUT)
