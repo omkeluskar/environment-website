@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FIELD VISIT PHOTOGRAPHS from the students' own photos, pages 96+."""
+"""FIELD VISIT PHOTOGRAPHS — friend's A4 layout + GPS Map Camera stamp."""
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -7,9 +7,9 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Cm, Inches, Pt
+from docx.shared import Cm, Emu, Inches, Pt
 from reportlab.lib.colors import black
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 
@@ -17,22 +17,16 @@ ROOT = Path("/workspace/cep-iot-bus-stop")
 FIG = ROOT / "figures/field_visit"
 ORIG = FIG / "originals"
 CH = ROOT / "chapters"
-TITLE = (
-    "IoT-Based Bus Stop System for Public Transport Overcrowding "
-    "Prediction Using Machine Learning"
-)
 TNR = "Times-Roman"
 TNRB = "Times-Bold"
 START = 96
-
-SITE = {
-    "city": "Mumbai, Maharashtra, India",
-    "address": (
-        "Dindoshi Bus Depot, Gen. A.K. Vaidya Marg, Malad East, "
-        "Mumbai, Maharashtra 400097, India"
-    ),
-}
 MAP_THUMB = FIG / "gps_map_thumb.jpg"
+
+SITE_CITY = "Mumbai, Maharashtra, India"
+SITE_ADDRESS = (
+    "Dindoshi Bus Depot, Gen. A.K. Vaidya Marg, Malad East, "
+    "Mumbai, Maharashtra 400097, India"
+)
 
 IMAGES = [
     {
@@ -41,15 +35,14 @@ IMAGES = [
         "label": "Image.1",
         "blurb": (
             "The prototype device is mounted on the shelter pillar during "
-            "field testing at Dindoshi Bus Depot (BEST Route 326). The setup "
-            "demonstrates real-world stop-based overcrowding monitoring with "
-            "GPS location recording for depot operations."
+            "field testing on a stop containing a passenger queue. The setup "
+            "demonstrates real-world bus-stop overcrowding monitoring with "
+            "GPS location recording for depot maintenance."
         ),
         "caption": "Image.1: Field Demonstration",
         "lat": 19.175312,
         "lng": 72.864918,
         "when": "Wednesday, 02/09/2026 03:47 PM GMT +05:30",
-        "footer": None,
     },
     {
         "src": FIG / "box_closeup.jpg",
@@ -57,47 +50,46 @@ IMAGES = [
         "label": "Image.2",
         "blurb": (
             "Close-up view showing the enclosed electronic components mounted "
-            "securely on the bus-stop pillar for sensor-based overcrowding "
-            "monitoring: ESP32, VL53L0X ToF module, DHT sensor, buzzer and "
-            "red/green status LEDs inside the clear plastic box."
+            "securely on the shelter pillar for sensor-based overcrowding "
+            "monitoring."
         ),
         "caption": "Image.2: Close-up Prototype on Shelter Pillar",
         "lat": 19.175308,
         "lng": 72.864905,
         "when": "Wednesday, 02/09/2026 03:46 PM GMT +05:30",
-        "footer": None,
     },
     {
         "src": ORIG / "shelter_705.jpg",
         "out": FIG / "image3_gps.jpg",
         "label": "Image.3",
         "blurb": (
-            "This image shows the Dindoshi boarding shelter during the field "
-            "visit. Commuters wait along the metal railing under the roof "
-            "while a BEST bus approaches the stop."
+            "The original photograph shows the approach to the Dindoshi "
+            "bus-stop shelter, its railings and waiting passengers. The bus "
+            "and pedestrian movement provide context for selecting a sensing "
+            "location."
         ),
-        "caption": "Image.3: Field Observation of the Bus Shelter",
+        "caption": "Image.3: Bus-Stop Approach and Waiting Area",
         "lat": 19.175300,
         "lng": 72.864900,
         "when": "Wednesday, 02/09/2026 03:49 PM GMT +05:30",
-        "footer": None,
     },
     {
         "src": ORIG / "dindoshi_station.jpg",
         "out": FIG / "image4_gps.jpg",
         "label": "Image.4",
         "blurb": (
-            "This image shows the Dindoshi Bus Station platform with several "
-            "commuters queued under the shelter. A BEST bus stands in the "
-            "yard while the waiting area along the railing is occupied."
+            "This image shows a bus stop with several commuters queued along "
+            "the shelter after daytime operations. Many of the passengers are "
+            "waiting under the canopy, while BEST buses stand in the depot yard."
         ),
         "caption": "Image.4: Field Observation of an Overcrowded Bus Stop",
         "lat": 19.175295,
         "lng": 72.864890,
         "when": "Wednesday, 02/09/2026 03:51 PM GMT +05:30",
         "footer": (
-            "The crowded platform is a real-world example of the occupancy "
-            "condition that the IoT risk model is designed to flag for Route 326."
+            "The crowded waiting area is harder to judge by eye alone. The "
+            "image provides a real-world example of overcrowding in a busy "
+            "urban depot."
         ),
     },
     {
@@ -105,45 +97,29 @@ IMAGES = [
         "out": FIG / "image5_gps.jpg",
         "label": "Image.5",
         "blurb": (
-            "Wide view of Dindoshi Bus Depot recorded during the visit. "
-            "Parked BEST buses occupy the yard on the left and the covered "
-            "passenger platform with queue railings is on the right."
+            "This original wide view shows parked BEST buses and the covered "
+            "passenger platform. It records the surrounding depot layout and "
+            "the relationship between the waiting area and vehicle movement."
         ),
         "caption": "Image.5: Dindoshi Bus Depot Yard",
         "lat": 19.175288,
         "lng": 72.864882,
         "when": "Wednesday, 02/09/2026 03:53 PM GMT +05:30",
-        "footer": None,
     },
     {
         "src": ORIG / "dindoshi_queue.jpg",
         "out": FIG / "image6_gps.jpg",
         "label": "Image.6",
         "blurb": (
-            "Another view of the same Dindoshi shelter during the field "
-            "visit, with commuters seated and standing along the full length "
-            "of the railing under the depot canopy."
+            "The original photograph shows the shelter pillars, railing and "
+            "queue beneath the canopy at Dindoshi Bus Depot."
         ),
         "caption": "Image.6: Passenger Queue at Dindoshi Bus Depot",
         "lat": 19.175302,
         "lng": 72.864908,
         "when": "Wednesday, 02/09/2026 03:55 PM GMT +05:30",
-        "footer": None,
     },
 ]
-
-
-def fonts():
-    bold = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22
-    )
-    small = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 16
-    )
-    tiny = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13
-    )
-    return bold, small, tiny
 
 
 def wrap_text(draw, text, font, max_width):
@@ -169,56 +145,43 @@ def crop_to_43(img):
         nw = int(h * target)
         return img.crop(((w - nw) // 2, 0, (w + nw) // 2, h))
     nh = int(w / target)
-    # keep the upper portion so shelter signs stay in frame
     top = max(0, int((h - nh) * 0.18))
     return img.crop((0, top, w, top + nh))
 
 
-def draw_mini_map(size=210):
-    m = Image.new("RGB", (size, size), (226, 232, 228))
-    d = ImageDraw.Draw(m)
-    d.rectangle([0, 0, size, 70], fill=(198, 220, 186))
-    d.rectangle([0, 150, size, size], fill=(198, 220, 186))
-    d.rectangle([18, 78, size, 102], fill=(255, 255, 255))
-    d.rectangle([70, 40, 94, 170], fill=(255, 255, 255))
-    d.rectangle([0, 118, size, 138], fill=(232, 214, 160))
-    d.rectangle([130, 20, 148, size], fill=(255, 255, 255))
-    cx, cy = size // 2 + 8, size // 2 + 6
-    d.ellipse([cx - 18, cy - 28, cx + 18, cy + 8], fill=(66, 133, 244))
-    d.polygon(
-        [(cx, cy + 36), (cx - 16, cy + 2), (cx + 16, cy + 2)],
-        fill=(66, 133, 244),
-    )
-    d.ellipse([cx - 6, cy - 16, cx + 6, cy - 4], fill=(255, 255, 255))
-    return m
+def india_flag(w=54, h=36):
+    im = Image.new("RGB", (w, h), (255, 255, 255))
+    d = ImageDraw.Draw(im)
+    d.rectangle([0, 0, w, h // 3], fill=(255, 153, 51))
+    d.rectangle([0, 2 * h // 3, w, h], fill=(19, 136, 8))
+    cx, cy, r = w // 2, h // 2, max(4, h // 7)
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(0, 0, 128), width=1)
+    return im
 
 
 def add_gps_overlay(src, dest, lat, lng, when):
-    """GPS Map Camera-style stamp: map left, city/address/lat/long/time right."""
+    """Friend's GPS Map Camera card: bottom-right map + city + address + lat/long + time."""
     img = crop_to_43(Image.open(src).convert("RGB"))
     img = img.resize((1600, 1200), Image.Resampling.LANCZOS)
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(overlay)
     bold = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22
     )
     small = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 15
     )
     tiny = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 13
     )
-    brand = ImageFont.truetype(
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 12
-    )
-    box_w, box_h = 780, 268
-    x0, y0 = img.width - box_w - 18, img.height - box_h - 16
+    box_w, box_h = 700, 236
+    x0, y0 = img.width - box_w - 22, img.height - box_h - 20
     d.rounded_rectangle(
         [x0, y0, x0 + box_w, y0 + box_h],
-        radius=22,
-        fill=(10, 14, 22, 230),
+        radius=18,
+        fill=(8, 10, 16, 228),
     )
-    map_size = 220
+    map_size = 196
     if MAP_THUMB.exists():
         mini = Image.open(MAP_THUMB).convert("RGB")
         side = min(mini.size)
@@ -226,44 +189,32 @@ def add_gps_overlay(src, dest, lat, lng, when):
             (map_size, map_size), Image.Resampling.LANCZOS
         )
     else:
-        mini = draw_mini_map(map_size)
+        mini = Image.new("RGB", (map_size, map_size), (210, 220, 210))
     mask = Image.new("L", (map_size, map_size), 0)
     ImageDraw.Draw(mask).rounded_rectangle(
-        [0, 0, map_size - 1, map_size - 1], radius=16, fill=255
+        [0, 0, map_size - 1, map_size - 1], radius=14, fill=255
     )
-    overlay.paste(mini.convert("RGBA"), (x0 + 18, y0 + 24), mask)
-    tx = x0 + 256
-    tw = box_w - 276
-    d.text((tx, y0 + 20), SITE["city"], font=bold, fill=(255, 255, 255, 255))
-    ay = y0 + 54
-    for line in wrap_text(d, SITE["address"], small, tw)[:3]:
-        d.text((tx, ay), line, font=small, fill=(220, 226, 232, 255))
-        ay += 21
+    overlay.paste(mini.convert("RGBA"), (x0 + 16, y0 + 20), mask)
+    tx = x0 + 228
+    tw = box_w - 250
+    d.text((tx, y0 + 16), SITE_CITY, font=bold, fill=(255, 255, 255, 255))
+    ay = y0 + 48
+    for line in wrap_text(d, SITE_ADDRESS, small, tw)[:3]:
+        d.text((tx, ay), line, font=small, fill=(230, 230, 230, 255))
+        ay += 19
     d.text(
-        (tx, ay + 8),
+        (tx, ay + 6),
         f"Lat {lat:.6f}°  Long {lng:.6f}°",
         font=small,
         fill=(255, 255, 255, 255),
     )
-    d.text((tx, ay + 34), when, font=tiny, fill=(210, 210, 210, 255))
-    d.text(
-        (tx, ay + 58),
-        "GPS Map Camera",
-        font=brand,
-        fill=(160, 190, 255, 255),
-    )
+    d.text((tx, ay + 30), when, font=tiny, fill=(210, 210, 210, 255))
+    flag = india_flag().convert("RGBA")
+    overlay.paste(flag, (x0 + box_w - 70, y0 + 18), flag)
     out = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
     dest = Path(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    out.save(dest, format="JPEG", quality=84, optimize=True)
-    return dest
-
-
-def prepare_plain(src, dest):
-    img = crop_to_43(Image.open(src).convert("RGB"))
-    img = img.resize((1600, 1200), Image.Resampling.LANCZOS)
-    dest = Path(dest)
-    img.save(dest, format="JPEG", quality=86, optimize=True)
+    out.save(dest, format="JPEG", quality=85, optimize=True)
     return dest
 
 
@@ -282,18 +233,25 @@ def wrap_pdf(text, font, size, maxw):
     return lines
 
 
+def page_border(c, W, H):
+    c.setStrokeColor(black)
+    c.setLineWidth(1.0)
+    inset = 18
+    c.rect(inset, inset, W - 2 * inset, H - 2 * inset)
+
+
 def draw_block(c, item, img_path, y, W, margin, photo_h):
     c.setFont(TNRB, 12)
     c.drawString(margin, y, item["label"])
-    y -= 16
-    c.setFont(TNR, 11)
+    y -= 18
+    c.setFont(TNR, 12)
     maxw = W - 2 * margin
-    for line in wrap_pdf(item["blurb"], TNR, 11, maxw):
+    for line in wrap_pdf(item["blurb"], TNR, 12, maxw):
         c.drawString(margin, y, line)
-        y -= 14
-    y -= 6
+        y -= 15
+    y -= 8
     im = Image.open(img_path)
-    max_w = W - 2 * margin
+    max_w = W - 2 * margin - 40
     scale = min(max_w / im.width, photo_h / im.height)
     dw, dh = im.width * scale, im.height * scale
     c.drawImage(
@@ -305,50 +263,40 @@ def draw_block(c, item, img_path, y, W, margin, photo_h):
         preserveAspectRatio=True,
         mask="auto",
     )
-    y = y - dh - 16
+    y = y - dh - 14
     c.setFont(TNRB, 11)
     c.drawCentredString(W / 2, y, item["caption"])
     y -= 16
     if item.get("footer"):
-        c.setFont(TNR, 11)
-        for line in wrap_pdf(item["footer"], TNR, 11, maxw):
+        c.setFont(TNR, 12)
+        for line in wrap_pdf(item["footer"], TNR, 12, maxw):
             c.drawString(margin, y, line)
-            y -= 14
+            y -= 15
         y -= 4
     return y
 
 
-def header_footer(c, page_no):
-    W, H = letter
-    margin = 43
-    c.setFont(TNR, 10)
-    c.drawCentredString(W / 2, H - 36, TITLE)
-    c.setStrokeColor(black)
-    c.setLineWidth(0.6)
-    c.line(margin, H - 42, W - margin, H - 42)
-    c.setFont(TNR, 11)
-    c.drawCentredString(W / 2, 32, str(page_no))
-
-
 def build_pdf(paths):
     pdf_path = CH / "Field_Visit_Photographs.pdf"
-    c = canvas.Canvas(str(pdf_path), pagesize=letter)
-    W, H = letter
-    margin = 43
+    c = canvas.Canvas(str(pdf_path), pagesize=A4)
+    W, H = A4
+    margin = 70.5
     for page_i in range(0, len(IMAGES), 2):
         page_no = START + page_i // 2
-        header_footer(c, page_no)
-        y = H - 64
+        page_border(c, W, H)
+        y = H - 56
         if page_i == 0:
-            c.setFont(TNRB, 16)
+            c.setFont(TNRB, 14)
             c.drawCentredString(W / 2, y, "FIELD VISIT PHOTOGRAPHS")
-            y -= 26
-        y = draw_block(c, IMAGES[page_i], paths[page_i], y, W, margin, 248)
-        y -= 6
+            y -= 28
+        y = draw_block(c, IMAGES[page_i], paths[page_i], y, W, margin, 230)
+        y -= 18
         if page_i + 1 < len(IMAGES):
             draw_block(
-                c, IMAGES[page_i + 1], paths[page_i + 1], y, W, margin, 248
+                c, IMAGES[page_i + 1], paths[page_i + 1], y, W, margin, 230
             )
+        c.setFont(TNR, 11)
+        c.drawCentredString(W / 2, 36, str(page_no))
         c.showPage()
     c.save()
     print("wrote", pdf_path)
@@ -362,7 +310,7 @@ def set_run(run, *, size=12, bold=False, italic=False):
     run.italic = italic
 
 
-def pfmt(p, *, align="left", before=0, after=4, line=14):
+def pfmt(p, *, align="left", before=0, after=4, line=15):
     pf = p.paragraph_format
     pf.space_before = Pt(before)
     pf.space_after = Pt(after)
@@ -378,7 +326,7 @@ def pfmt(p, *, align="left", before=0, after=4, line=14):
 def add_page_field(paragraph):
     run = paragraph.add_run()
     run.font.name = "Times New Roman"
-    run.font.size = Pt(12)
+    run.font.size = Pt(11)
     begin = OxmlElement("w:fldChar")
     begin.set(qn("w:fldCharType"), "begin")
     instr = OxmlElement("w:instrText")
@@ -391,19 +339,31 @@ def add_page_field(paragraph):
     run._r.append(end)
 
 
+def set_page_border(section):
+    pg_borders = OxmlElement("w:pgBorders")
+    pg_borders.set(qn("w:offsetFrom"), "page")
+    for edge in ("top", "left", "bottom", "right"):
+        el = OxmlElement(f"w:{edge}")
+        el.set(qn("w:val"), "single")
+        el.set(qn("w:sz"), "12")
+        el.set(qn("w:space"), "18")
+        el.set(qn("w:color"), "000000")
+        pg_borders.append(el)
+    section._sectPr.append(pg_borders)
+
+
 def build_word(paths):
     doc = Document()
     sec = doc.sections[0]
-    sec.page_width = Inches(8.5)
-    sec.page_height = Inches(11)
-    sec.left_margin = Cm(2.0)
-    sec.right_margin = Cm(2.0)
-    sec.top_margin = Cm(2.2)
-    sec.bottom_margin = Cm(1.8)
+    sec.page_width = Cm(21.0)
+    sec.page_height = Cm(29.7)
+    sec.left_margin = Cm(2.5)
+    sec.right_margin = Cm(2.5)
+    sec.top_margin = Cm(2.0)
+    sec.bottom_margin = Cm(2.0)
+    set_page_border(sec)
     hp = sec.header.paragraphs[0]
-    hp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = hp.add_run(TITLE)
-    set_run(r, size=10)
+    hp.text = ""
     fp = sec.footer.paragraphs[0]
     fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
     add_page_field(fp)
@@ -415,33 +375,33 @@ def build_word(paths):
     sec._sectPr.append(pg)
 
     t = doc.add_paragraph()
-    pfmt(t, align="center", before=0, after=8, line=18)
+    pfmt(t, align="center", before=0, after=10, line=18)
     r = t.add_run("FIELD VISIT PHOTOGRAPHS")
-    set_run(r, size=16, bold=True)
+    set_run(r, size=14, bold=True)
 
     for i, item in enumerate(IMAGES):
         if i and i % 2 == 0:
             doc.add_page_break()
         p = doc.add_paragraph()
-        pfmt(p, align="left", before=6, after=2, line=14)
+        pfmt(p, align="left", before=8, after=2, line=15)
         r = p.add_run(item["label"])
         set_run(r, size=12, bold=True)
         b = doc.add_paragraph()
-        pfmt(b, align="both", before=0, after=4, line=14)
+        pfmt(b, align="left", before=0, after=6, line=15)
         r = b.add_run(item["blurb"])
-        set_run(r, size=11)
+        set_run(r, size=12)
         pic = doc.add_paragraph()
-        pfmt(pic, align="center", before=0, after=2, line=12)
-        pic.add_run().add_picture(str(paths[i]), width=Inches(6.4))
+        pfmt(pic, align="center", before=2, after=4, line=12)
+        pic.add_run().add_picture(str(paths[i]), width=Inches(5.35))
         cap = doc.add_paragraph()
-        pfmt(cap, align="center", before=2, after=8, line=14)
+        pfmt(cap, align="center", before=2, after=10, line=14)
         r = cap.add_run(item["caption"])
         set_run(r, size=11, bold=True)
         if item.get("footer"):
             f = doc.add_paragraph()
-            pfmt(f, align="both", before=0, after=4, line=14)
+            pfmt(f, align="left", before=0, after=6, line=15)
             r = f.add_run(item["footer"])
-            set_run(r, size=11)
+            set_run(r, size=12)
 
     out = CH / "Field_Visit_Photographs.docx"
     doc.save(out)
