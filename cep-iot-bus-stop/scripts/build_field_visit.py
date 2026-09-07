@@ -32,76 +32,73 @@ SITE = {
         "Mumbai, Maharashtra 400097, India"
     ),
 }
+MAP_THUMB = FIG / "gps_map_thumb.jpg"
 
 IMAGES = [
     {
-        "src": FIG / "proto_at_dindoshi.jpg",
+        "src": FIG / "box_field_demo.jpg",
         "out": FIG / "image1_gps.jpg",
         "label": "Image.1",
         "blurb": (
-            "The prototype device is set up at the boarding edge during field "
-            "testing at Dindoshi Bus Depot (BEST Route 326). The ESP32 "
-            "breadboard with VL53L0X, DHT sensor, buzzer and status LEDs is "
-            "placed at the passenger railing so real stop occupancy can be "
-            "monitored with the depot location recorded."
+            "The prototype device is mounted on the shelter pillar during "
+            "field testing at Dindoshi Bus Depot (BEST Route 326). The setup "
+            "demonstrates real-world stop-based overcrowding monitoring with "
+            "GPS location recording for depot operations."
         ),
         "caption": "Image.1: Field Demonstration",
-        "gps": True,
         "lat": 19.175312,
         "lng": 72.864918,
-        "when": "Wednesday, 03/09/2026 04:18 PM GMT +05:30",
+        "when": "Wednesday, 02/09/2026 03:47 PM GMT +05:30",
         "footer": None,
     },
     {
-        "src": FIG / "proto_enhanced_1.jpg",
+        "src": FIG / "box_closeup.jpg",
         "out": FIG / "image2_gps.jpg",
         "label": "Image.2",
         "blurb": (
-            "Close-up view of the enclosed working prototype used for "
-            "sensor-based overcrowding monitoring: ESP32 Wi-Fi board, VL53L0X "
-            "I2C ToF module (SDA/SCL), DHT temperature-humidity sensor, piezo "
-            "buzzer, and red/green LED indicators with current-limiting "
-            "resistors on the 3.3 V rail."
+            "Close-up view showing the enclosed electronic components mounted "
+            "securely on the bus-stop pillar for sensor-based overcrowding "
+            "monitoring: ESP32, VL53L0X ToF module, DHT sensor, buzzer and "
+            "red/green status LEDs inside the clear plastic box."
         ),
-        "caption": "Image.2: Close-up Prototype Hardware",
-        "gps": False,
-        "lat": None,
-        "lng": None,
-        "when": None,
-        "footer": None,
-    },
-    {
-        "src": FIG / "proto_enhanced_2.jpg",
-        "out": FIG / "image3_ready.jpg",
-        "label": "Image.3",
-        "blurb": (
-            "A second laboratory close-up of the same breadboard after "
-            "enhancement for report clarity. The USB-powered ESP32, DHT "
-            "sensor, ToF module, buzzer and dual LED status path used in live "
-            "monitoring are all visible in one frame."
-        ),
-        "caption": "Image.3: Prototype Circuit (Enhanced Close-up)",
-        "gps": False,
-        "lat": None,
-        "lng": None,
-        "when": None,
+        "caption": "Image.2: Close-up Prototype on Shelter Pillar",
+        "lat": 19.175308,
+        "lng": 72.864905,
+        "when": "Wednesday, 02/09/2026 03:46 PM GMT +05:30",
         "footer": None,
     },
     {
         "src": ORIG / "shelter_705.jpg",
+        "out": FIG / "image3_gps.jpg",
+        "label": "Image.3",
+        "blurb": (
+            "This image shows the Dindoshi boarding shelter during the field "
+            "visit. Commuters wait along the metal railing under the roof "
+            "while a BEST bus approaches the stop."
+        ),
+        "caption": "Image.3: Field Observation of the Bus Shelter",
+        "lat": 19.175300,
+        "lng": 72.864900,
+        "when": "Wednesday, 02/09/2026 03:49 PM GMT +05:30",
+        "footer": None,
+    },
+    {
+        "src": ORIG / "dindoshi_station.jpg",
         "out": FIG / "image4_gps.jpg",
         "label": "Image.4",
         "blurb": (
-            "This image shows the Dindoshi stop shelter during the field "
-            "visit. Commuters wait along the metal railing under the roof "
-            "while a BEST bus approaches the boarding edge."
+            "This image shows the Dindoshi Bus Station platform with several "
+            "commuters queued under the shelter. A BEST bus stands in the "
+            "yard while the waiting area along the railing is occupied."
         ),
-        "caption": "Image.4: Field Observation of the Bus Shelter",
-        "gps": True,
-        "lat": 19.175308,
-        "lng": 72.864905,
-        "when": "Wednesday, 03/09/2026 04:21 PM GMT +05:30",
-        "footer": None,
+        "caption": "Image.4: Field Observation of an Overcrowded Bus Stop",
+        "lat": 19.175295,
+        "lng": 72.864890,
+        "when": "Wednesday, 02/09/2026 03:51 PM GMT +05:30",
+        "footer": (
+            "The crowded platform is a real-world example of the occupancy "
+            "condition that the IoT risk model is designed to flag for Route 326."
+        ),
     },
     {
         "src": ORIG / "depot_wide.jpg",
@@ -113,30 +110,25 @@ IMAGES = [
             "passenger platform with queue railings is on the right."
         ),
         "caption": "Image.5: Dindoshi Bus Depot Yard",
-        "gps": True,
-        "lat": 19.175295,
-        "lng": 72.864890,
-        "when": "Wednesday, 03/09/2026 04:24 PM GMT +05:30",
+        "lat": 19.175288,
+        "lng": 72.864882,
+        "when": "Wednesday, 02/09/2026 03:53 PM GMT +05:30",
         "footer": None,
     },
     {
-        "src": ORIG / "dindoshi_station.jpg",
+        "src": ORIG / "dindoshi_queue.jpg",
         "out": FIG / "image6_gps.jpg",
         "label": "Image.6",
         "blurb": (
-            "Commuters queued under the Dindoshi Bus Station shelter. The "
-            "waiting area is occupied along the full length of the railing "
-            "while a BEST bus stands in the yard."
+            "Another view of the same Dindoshi shelter during the field "
+            "visit, with commuters seated and standing along the full length "
+            "of the railing under the depot canopy."
         ),
-        "caption": "Image.6: Field Observation of an Overcrowded Bus Stop",
-        "gps": True,
-        "lat": 19.175300,
-        "lng": 72.864900,
-        "when": "Wednesday, 03/09/2026 04:27 PM GMT +05:30",
-        "footer": (
-            "The crowded platform is a real-world example of the occupancy "
-            "condition that the IoT risk model is designed to flag for Route 326."
-        ),
+        "caption": "Image.6: Passenger Queue at Dindoshi Bus Depot",
+        "lat": 19.175302,
+        "lng": 72.864908,
+        "when": "Wednesday, 02/09/2026 03:55 PM GMT +05:30",
+        "footer": None,
     },
 ]
 
@@ -202,33 +194,64 @@ def draw_mini_map(size=210):
 
 
 def add_gps_overlay(src, dest, lat, lng, when):
+    """GPS Map Camera-style stamp: map left, city/address/lat/long/time right."""
     img = crop_to_43(Image.open(src).convert("RGB"))
     img = img.resize((1600, 1200), Image.Resampling.LANCZOS)
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(overlay)
-    bold, small, tiny = fonts()
-    box_w, box_h = 720, 248
-    x0, y0 = img.width - box_w - 22, img.height - box_h - 18
+    bold = ImageFont.truetype(
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24
+    )
+    small = ImageFont.truetype(
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17
+    )
+    tiny = ImageFont.truetype(
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 14
+    )
+    brand = ImageFont.truetype(
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 12
+    )
+    box_w, box_h = 780, 268
+    x0, y0 = img.width - box_w - 18, img.height - box_h - 16
     d.rounded_rectangle(
         [x0, y0, x0 + box_w, y0 + box_h],
-        radius=20,
-        fill=(16, 22, 32, 218),
+        radius=22,
+        fill=(10, 14, 22, 230),
     )
-    mini = draw_mini_map(200).convert("RGBA")
-    overlay.paste(mini, (x0 + 16, y0 + 24), mini)
-    tx = x0 + 232
-    d.text((tx, y0 + 18), SITE["city"], font=bold, fill=(255, 255, 255, 255))
-    ay = y0 + 52
-    for line in wrap_text(d, SITE["address"], small, box_w - 260)[:3]:
-        d.text((tx, ay), line, font=small, fill=(220, 228, 235, 255))
-        ay += 20
+    map_size = 220
+    if MAP_THUMB.exists():
+        mini = Image.open(MAP_THUMB).convert("RGB")
+        side = min(mini.size)
+        mini = mini.crop((0, 0, side, side)).resize(
+            (map_size, map_size), Image.Resampling.LANCZOS
+        )
+    else:
+        mini = draw_mini_map(map_size)
+    mask = Image.new("L", (map_size, map_size), 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        [0, 0, map_size - 1, map_size - 1], radius=16, fill=255
+    )
+    overlay.paste(mini.convert("RGBA"), (x0 + 18, y0 + 24), mask)
+    tx = x0 + 256
+    tw = box_w - 276
+    d.text((tx, y0 + 20), SITE["city"], font=bold, fill=(255, 255, 255, 255))
+    ay = y0 + 54
+    for line in wrap_text(d, SITE["address"], small, tw)[:3]:
+        d.text((tx, ay), line, font=small, fill=(220, 226, 232, 255))
+        ay += 21
     d.text(
         (tx, ay + 8),
         f"Lat {lat:.6f}°  Long {lng:.6f}°",
         font=small,
-        fill=(170, 205, 255, 255),
+        fill=(255, 255, 255, 255),
     )
-    d.text((tx, ay + 34), when, font=tiny, fill=(200, 200, 200, 255))
+    d.text((tx, ay + 34), when, font=tiny, fill=(210, 210, 210, 255))
+    d.text(
+        (tx, ay + 58),
+        "GPS Map Camera",
+        font=brand,
+        fill=(160, 190, 255, 255),
+    )
     out = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
     dest = Path(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -429,12 +452,9 @@ def main():
     FIG.mkdir(parents=True, exist_ok=True)
     paths = []
     for item in IMAGES:
-        if item["gps"]:
-            add_gps_overlay(
-                item["src"], item["out"], item["lat"], item["lng"], item["when"]
-            )
-        else:
-            prepare_plain(item["src"], item["out"])
+        add_gps_overlay(
+            item["src"], item["out"], item["lat"], item["lng"], item["when"]
+        )
         paths.append(item["out"])
         print("ready", item["out"])
     build_pdf(paths)
