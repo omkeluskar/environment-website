@@ -107,7 +107,7 @@ TOC = [
             ("4.2. Implementation Approach", 46),
             ("4.3. Hardware Assembly", 48),
             ("4.4. Firmware Development", 51),
-            ("4.5. Cloud / Blynk Integration", 56),
+            ("4.5. Database/Cloud Integration", 56),
             ("4.6. Dashboard Development", 58),
             ("4.7. Module-wise Implementation", 59),
             ("4.8. Algorithms and Control Logic", 60),
@@ -129,7 +129,7 @@ TOC = [
             ("5.7. Security Testing", 74),
             ("5.8. Validation Metrics", 75),
             ("5.9. Test Cases", 77),
-            ("5.10. Defects Identified and Corrections", 78),
+            ("5.10. Defects Identified and corrections", 78),
             ("5.11. Chapter Summary", 79),
         ],
     ),
@@ -163,12 +163,8 @@ TOC = [
 ]
 
 BACK = [
-    ("REFERENCES", "86"),
-    ("APPENDIX A: SYSTEM LOGIC", "89"),
-    ("SURVEY QUESTIONNAIRE", "94"),
-    ("FEEDBACK QUESTIONNAIRE", "95"),
-    ("FIELD VISIT PHOTOGRAPHS", "96"),
-    ("ANNEXURES", "94 – 98"),
+    ("REFERENCES", "92"),
+    ("ANNEXURES", "95 – 102"),
 ]
 
 
@@ -435,32 +431,58 @@ def draw_proposal(c):
     c.drawRightString(W - 50, y - 36, "Date:")
 
 
-def toc_line(c, left, right, y, text, page, bold=False, size=12):
-    font = TNRB if bold else TNR
-    c.setFont(font, size)
-    num = str(page)
-    nw = stringWidth(num, font, size)
-    max_title = right - left - nw - 12
-    # keep on one line; shrink if needed
-    title = text
-    while stringWidth(title, font, size) > max_title - 20 and len(title) > 20:
-        title = title[:-2]
-    tw = stringWidth(title, font, size)
-    c.drawString(left, y, title)
-    gap_x0 = left + tw + 4
-    gap_x1 = right - nw - 4
+def _toc_dots(c, x0, x1, y):
     c.setFont(TNR, 10)
-    x = gap_x0
-    while x < gap_x1:
+    x = x0
+    while x < x1:
         c.drawString(x, y, ".")
-        x += 4.2
-    c.setFont(font, size)
-    c.drawRightString(right, y, num)
+        x += 3.8
+
+
+def toc_entry(c, left, right, y, text, page, *, bold=False, size=12, section=False):
+    """Dotted-leader TOC row. Chapter titles wrap; section numbers stay bold."""
+    num = str(page)
+    font = TNRB if bold else TNR
+    nw = stringWidth(num, TNRB if bold else TNR, size)
+    usable = right - left - nw - 14
+    prefix = ""
+    prefix_w = 0
+    body = text
+    if section:
+        head, _, tail = text.partition(" ")
+        prefix = head + " "
+        prefix_w = stringWidth(prefix, TNRB, size)
+        body = tail
+        lines = wrap(c, body, TNR, size, max(40, usable - prefix_w))
+    else:
+        lines = wrap(c, text, font, size, usable)
+    if not lines:
+        lines = [""]
+    for i, line in enumerate(lines):
+        last = i == len(lines) - 1
+        if section and i == 0:
+            c.setFont(TNRB, size)
+            c.drawString(left, y, prefix.rstrip())
+            c.setFont(TNR, size)
+            c.drawString(left + prefix_w, y, line)
+            end_x = left + prefix_w + stringWidth(line, TNR, size)
+        else:
+            use_font = font if not section else TNR
+            x = left + prefix_w if section else left
+            c.setFont(use_font, size)
+            c.drawString(x, y, line)
+            end_x = x + stringWidth(line, use_font, size)
+        if last:
+            _toc_dots(c, end_x + 4, right - nw - 6, y)
+            c.setFont(TNRB if bold else TNR, size)
+            c.drawRightString(right, y, num)
+        y -= 16 if section else 15
+    return y
 
 
 def draw_toc_pages(c):
     W, H = letter
-    left, right = 50, W - 50
+    left, right = 54, W - 54
     first = True
 
     def new_page():
@@ -474,24 +496,21 @@ def draw_toc_pages(c):
     y = new_page()
     c.setFont(TNRB, 16)
     c.drawCentredString(W / 2, y, "TABLE OF CONTENTS")
-    y -= 28
+    y -= 30
     for title, page, secs in TOC:
-        if y < 90:
+        if title.startswith("CHAPTER 3") or title.startswith("CHAPTER 5"):
             y = new_page()
-        toc_line(c, left, right, y, title, page, bold=True, size=11)
-        y -= 16
+        y = toc_entry(c, left, right, y, title, page, bold=True, size=12)
+        y -= 2
         for s, sp in secs:
-            if y < 70:
+            if y < 68:
                 y = new_page()
-            toc_line(c, left + 12, right, y, s, sp, bold=False, size=12)
-            y -= 14
+            y = toc_entry(c, left + 18, right, y, s, sp, section=True, size=12)
         y -= 10
-    if y < 70 + 16 * len(BACK):
-        y = new_page()
     y -= 4
     for title, page in BACK:
-        toc_line(c, left, right, y, title, page, bold=True, size=12)
-        y -= 16
+        y = toc_entry(c, left, right, y, title, page, bold=True, size=12)
+        y -= 4
 
 
 def build_pdfs():
@@ -566,17 +585,27 @@ def page_border(section):
     section._sectPr.append(borders)
 
 
-def add_toc_para(doc, text, page, bold=False, indent=0):
+def add_toc_para(doc, text, page, bold=False, indent=0, section=False):
     p = doc.add_paragraph()
-    pfmt(p, align="left", before=1, after=1, line=16)
+    pfmt(p, align="left", before=0, after=2, line=18)
     if indent:
         p.paragraph_format.left_indent = Cm(indent)
     tab = p.paragraph_format.tab_stops.add_tab_stop
-    tab(Cm(16.0), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
-    r = p.add_run(text)
-    set_run(r, size=12, bold=bold)
-    r2 = p.add_run("\t" + str(page))
-    set_run(r2, size=12, bold=bold)
+    tab(Cm(16.2), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS)
+    if section:
+        head, _, tail = text.partition(" ")
+        r = p.add_run(head + " ")
+        set_run(r, size=12, bold=True)
+        r = p.add_run(tail)
+        set_run(r, size=12, bold=False)
+        r2 = p.add_run("\t" + str(page))
+        set_run(r2, size=12, bold=False)
+    else:
+        r = p.add_run(text)
+        set_run(r, size=12, bold=bold)
+        r2 = p.add_run("\t" + str(page))
+        set_run(r2, size=12, bold=bold)
+    return p
 
 
 def build_word():
@@ -736,17 +765,44 @@ def build_word():
     set_run(p.add_run("Date:                                                Date:"), size=11)
 
     doc.add_page_break()
+    write_toc_body(doc)
+
+    out = CH / "Front_Matter.docx"
+    doc.save(out)
+    print("wrote", out)
+
+
+def write_toc_body(doc, page_breaks=True):
     p = doc.add_paragraph()
-    pfmt(p, after=12)
+    pfmt(p, after=14, line=22)
     set_run(p.add_run("TABLE OF CONTENTS"), size=16, bold=True)
     for title, page, secs in TOC:
+        if page_breaks and (
+            title.startswith("CHAPTER 3") or title.startswith("CHAPTER 5")
+        ):
+            doc.add_page_break()
         add_toc_para(doc, title, page, bold=True)
         for s, sp in secs:
-            add_toc_para(doc, s, sp, indent=0.6)
+            add_toc_para(doc, s, sp, indent=0.7, section=True)
+        p = doc.add_paragraph()
+        pfmt(p, after=4, line=8)
+        set_run(p.add_run(""), size=6)
     for title, page in BACK:
         add_toc_para(doc, title, page, bold=True)
 
-    out = CH / "Front_Matter.docx"
+
+def build_toc_word():
+    doc = Document()
+    sec = doc.sections[0]
+    sec.page_width = Inches(8.5)
+    sec.page_height = Inches(11)
+    sec.left_margin = Cm(2.2)
+    sec.right_margin = Cm(2.2)
+    sec.top_margin = Cm(2.0)
+    sec.bottom_margin = Cm(2.0)
+    page_border(sec)
+    write_toc_body(doc)
+    out = CH / "Table_of_Contents.docx"
     doc.save(out)
     print("wrote", out)
 
@@ -754,3 +810,4 @@ def build_word():
 if __name__ == "__main__":
     build_pdfs()
     build_word()
+    build_toc_word()

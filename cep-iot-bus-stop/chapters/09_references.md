@@ -2,7 +2,7 @@
 
 College format matching the sample: **Research Paper N** heading, IEEE `[n]` line, then `Official Website -` / `Links -` / `Available -` with a live URL.
 
-Page numbers continue after Chapter 7: **86–88**.
+Page numbers continue after Chapter 7: **92** (see Table of Contents). Annexures occupy **95–102**.
 
 1. T. Arabghalizi, A. Labrinidis, “Data-driven Bus Crowding Prediction Models Using Context-specific Features,” ACM/IMS Transactions on Data Science, vol. 1, no. 3, Art. no. 23, 2020. https://doi.org/10.1145/3406962
 
