@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Cover, certificate, proposal, TOC — friend's NMFC black-book front matter."""
+from html import escape
 from pathlib import Path
 
 from PIL import Image
 from docx import Document
+from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_TAB_ALIGNMENT, WD_TAB_LEADER
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
@@ -791,19 +793,142 @@ def write_toc_body(doc, page_breaks=True):
         add_toc_para(doc, title, page, bold=True)
 
 
+def _set_run_simple(run, *, size=12, bold=False):
+    run.font.name = "Times New Roman"
+    run._element.rPr.rFonts.set(qn("w:ascii"), "Times New Roman")
+    run._element.rPr.rFonts.set(qn("w:hAnsi"), "Times New Roman")
+    run.font.size = Pt(size)
+    run.bold = bold
+
+
+def _no_table_borders(table):
+    tbl = table._tbl
+    tblPr = tbl.tblPr
+    for child in list(tblPr):
+        if child.tag == qn("w:tblBorders"):
+            tblPr.remove(child)
+    borders = OxmlElement("w:tblBorders")
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        el = OxmlElement(f"w:{edge}")
+        el.set(qn("w:val"), "nil")
+        el.set(qn("w:sz"), "0")
+        el.set(qn("w:space"), "0")
+        el.set(qn("w:color"), "auto")
+        borders.append(el)
+    tblPr.append(borders)
+
+
+def _cell_para(cell, text, *, bold=False, size=12, align="left", indent=False):
+    cell.text = ""
+    p = cell.paragraphs[0]
+    pf = p.paragraph_format
+    pf.space_before = Pt(1)
+    pf.space_after = Pt(1)
+    pf.line_spacing = 1.15
+    pf.line_spacing_rule = WD_LINE_SPACING.MULTIPLE
+    if indent:
+        pf.left_indent = Cm(0.75)
+    p.alignment = (
+        WD_ALIGN_PARAGRAPH.RIGHT if align == "right" else WD_ALIGN_PARAGRAPH.LEFT
+    )
+    if indent and align == "left":
+        head, _, tail = text.partition(" ")
+        r = p.add_run(head + " ")
+        _set_run_simple(r, size=size, bold=True)
+        r = p.add_run(tail)
+        _set_run_simple(r, size=size, bold=False)
+    else:
+        r = p.add_run(text)
+        _set_run_simple(r, size=size, bold=bold)
+
+
 def build_toc_word():
+    """Google Docs–safe TOC: two-column table, no page borders, no tab leaders."""
     doc = Document()
     sec = doc.sections[0]
     sec.page_width = Inches(8.5)
     sec.page_height = Inches(11)
-    sec.left_margin = Cm(2.2)
-    sec.right_margin = Cm(2.2)
-    sec.top_margin = Cm(2.0)
-    sec.bottom_margin = Cm(2.0)
-    page_border(sec)
-    write_toc_body(doc)
+    sec.left_margin = Inches(1.0)
+    sec.right_margin = Inches(1.0)
+    sec.top_margin = Inches(1.0)
+    sec.bottom_margin = Inches(1.0)
+
+    title = doc.add_paragraph()
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    title.paragraph_format.space_after = Pt(16)
+    title.paragraph_format.line_spacing = 1.15
+    _set_run_simple(title.add_run("TABLE OF CONTENTS"), size=16, bold=True)
+
+    rows = []
+    for ch_title, ch_page, secs in TOC:
+        rows.append((ch_title, str(ch_page), True, False))
+        for s, sp in secs:
+            rows.append((s, str(sp), False, True))
+        rows.append(("", "", False, False))
+    for name, page in BACK:
+        rows.append((name, str(page), True, False))
+
+    table = doc.add_table(rows=len(rows), cols=2)
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table.autofit = True
+    _no_table_borders(table)
+
+    for i, (left, right, bold, indent) in enumerate(rows):
+        if not left and not right:
+            continue
+        _cell_para(table.rows[i].cells[0], left, bold=bold, indent=indent)
+        _cell_para(table.rows[i].cells[1], right, bold=bold, align="right")
+
+    for row in table.rows:
+        row.cells[0].width = Inches(5.9)
+        row.cells[1].width = Inches(0.7)
+
     out = CH / "Table_of_Contents.docx"
     doc.save(out)
+    print("wrote", out)
+    build_toc_html()
+
+
+def build_toc_html():
+    parts = [
+        "<!DOCTYPE html>",
+        '<html lang="en"><head><meta charset="utf-8"/>',
+        "<title>TABLE OF CONTENTS</title>",
+        "<style>",
+        'body{font-family:"Times New Roman",Times,serif;font-size:12pt;',
+        "max-width:720px;margin:36px auto;color:#000;}",
+        "h1{text-align:center;font-size:16pt;margin:0 0 18px;}",
+        "table{width:100%;border-collapse:collapse;}",
+        "td{padding:3px 0;vertical-align:bottom;}",
+        "td.pg{width:72px;text-align:right;white-space:nowrap;}",
+        "tr.ch td{font-weight:bold;padding-top:10px;}",
+        "tr.sec td.title{padding-left:22px;}",
+        "tr.gap td{height:8px;padding:0;}",
+        "</style></head><body>",
+        "<h1>TABLE OF CONTENTS</h1>",
+        "<table>",
+    ]
+    for ch_title, ch_page, secs in TOC:
+        parts.append(
+            f'<tr class="ch"><td class="title">{escape(ch_title)}</td>'
+            f'<td class="pg">{ch_page}</td></tr>'
+        )
+        for s, sp in secs:
+            head, _, tail = s.partition(" ")
+            title = f"<strong>{escape(head)}</strong> {escape(tail)}"
+            parts.append(
+                f'<tr class="sec"><td class="title">{title}</td>'
+                f'<td class="pg">{sp}</td></tr>'
+            )
+        parts.append('<tr class="gap"><td></td><td></td></tr>')
+    for name, page in BACK:
+        parts.append(
+            f'<tr class="ch"><td class="title">{escape(name)}</td>'
+            f'<td class="pg">{escape(str(page))}</td></tr>'
+        )
+    parts.append("</table></body></html>")
+    out = CH / "Table_of_Contents.html"
+    out.write_text("\n".join(parts), encoding="utf-8")
     print("wrote", out)
 
 
