@@ -5,7 +5,7 @@ from pathlib import Path
 from PIL import Image
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_TAB_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Inches, Pt, RGBColor, Twips
@@ -247,22 +247,32 @@ def draw_page(c, *, title, questions, page_no, logo_path):
         y_top = table_top - i * row_h
         y_bot = y_top - row_h
         qtext = f"{i + 1}. {q}"
-        q_lines = wrap(c, qtext, TNRB, 8.2, table_w - 12)
-        ty = y_top - 11
-        c.setFont(TNRB, 8.2)
+        q_lines = wrap(c, qtext, TNRB, 8, table_w - 18)
+        ty = y_top - 13
+        c.setFont(TNRB, 8)
         for line in q_lines[:2]:
-            c.drawString(table_left + 6, ty, line)
+            c.drawString(table_left + 9, ty, line)
             ty -= 10
-        c.setFont(TNR, 8)
-        col_w = table_w / 4.0
+        n_opt = max(len(opts), 1)
+        pad_x = 12.0
+        inner_w = table_w - 2 * pad_x
+        col_w = inner_w / n_opt
+        box = 8.0
+        gap = 7.0
+        oy = y_bot + 11
         for j, opt in enumerate(opts):
-            ox = table_left + 8 + j * col_w
-            oy = y_bot + 10
-            c.rect(ox, oy, 7, 7, stroke=1, fill=0)
-            olines = wrap(c, opt, TNR, 7.4, col_w - 20)
-            c.drawString(ox + 11, oy, olines[0])
-            if len(olines) > 1:
-                c.drawString(ox + 11, oy - 9, olines[1])
+            ox = table_left + pad_x + j * col_w
+            c.setStrokeColor(black)
+            c.setFillColor(white)
+            c.setLineWidth(0.95)
+            c.rect(ox, oy - 0.4, box, box, stroke=1, fill=1)
+            c.setFillColor(black)
+            c.setFont(TNR, 7.5)
+            label_w = col_w - box - gap - 8
+            olines = wrap(c, opt, TNR, 7.5, max(24, label_w))
+            c.drawString(ox + box + gap, oy, olines[0])
+            if len(olines) > 1 and oy - 9 > y_bot + 2:
+                c.drawString(ox + box + gap, oy - 9, olines[1])
 
     c.setFont(TNR, 11)
     c.drawCentredString(W / 2, margin - 2, str(page_no))
@@ -281,7 +291,11 @@ def build_pdfs(logo):
 
 def set_run(run, *, size=11, bold=False, name="Times New Roman"):
     run.font.name = name
-    run._element.rPr.rFonts.set(qn("w:eastAsia"), name)
+    rPr = run._element.get_or_add_rPr()
+    rFonts = rPr.get_or_add_rFonts()
+    rFonts.set(qn("w:ascii"), name)
+    rFonts.set(qn("w:hAnsi"), name)
+    rFonts.set(qn("w:eastAsia"), name)
     run.font.size = Pt(size)
     run.bold = bold
     run.font.color.rgb = RGBColor(0, 0, 0)
@@ -354,11 +368,31 @@ def build_docx(path, title, questions, start):
     for i, (q, opts) in enumerate(questions):
         cell = tbl.cell(i, 0)
         cell.text = ""
+        tc = cell._tc
+        tcPr = tc.get_or_add_tcPr()
+        tcMar = OxmlElement("w:tcMar")
+        for edge, val in (("top", "90"), ("left", "120"), ("bottom", "90"), ("right", "120")):
+            el = OxmlElement(f"w:{edge}")
+            el.set(qn("w:w"), val)
+            el.set(qn("w:type"), "dxa")
+            tcMar.append(el)
+        tcPr.append(tcMar)
         pq = cell.paragraphs[0]
+        pq.paragraph_format.space_after = Pt(6)
+        pq.paragraph_format.space_before = Pt(3)
         rq = pq.add_run(f"{i + 1}. {q}")
         set_run(rq, size=10, bold=True)
         po = cell.add_paragraph()
-        ro = po.add_run("     ".join("☐  " + o for o in opts))
+        po.paragraph_format.space_before = Pt(4)
+        po.paragraph_format.space_after = Pt(4)
+        po.paragraph_format.line_spacing = 1.15
+        usable = Inches(7.15)
+        n = max(len(opts), 1)
+        col = int(usable) / n
+        for k in range(n):
+            po.paragraph_format.tab_stops.add_tab_stop(int(col * k), WD_TAB_ALIGNMENT.LEFT)
+        parts = [f"☐   {o}" for o in opts]
+        ro = po.add_run(parts[0] + "".join("\t" + p for p in parts[1:]))
         set_run(ro, size=9)
 
     path.parent.mkdir(parents=True, exist_ok=True)
