@@ -843,33 +843,54 @@ def add_leader_para(doc, text, page, *, bold=False, section=False):
     return p
 
 
+DOTS = ". " * 16
+
+
 def build_toc_word():
+    """Editable TOC: title | typed dots | page. Change font from the toolbar."""
     doc = Document()
+    normal = doc.styles["Normal"]
+    normal.font.name = "Times New Roman"
+    normal.font.size = Pt(12)
+    normal._element.rPr.rFonts.set(qn("w:ascii"), "Times New Roman")
+    normal._element.rPr.rFonts.set(qn("w:hAnsi"), "Times New Roman")
+
     sec = doc.sections[0]
     sec.page_width = Mm(210)
     sec.page_height = Mm(297)
-    sec.left_margin = Mm(18)
-    sec.right_margin = Mm(18)
-    sec.top_margin = Mm(16)
-    sec.bottom_margin = Mm(16)
+    sec.left_margin = Mm(20)
+    sec.right_margin = Mm(20)
+    sec.top_margin = Mm(18)
+    sec.bottom_margin = Mm(18)
 
     title = doc.add_paragraph()
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    title.paragraph_format.space_after = Pt(14)
+    title.paragraph_format.space_after = Pt(16)
     _set_run_simple(title.add_run("TABLE OF CONTENTS"), size=16, bold=True)
 
+    hint = doc.add_paragraph()
+    hint.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    hint.paragraph_format.space_after = Pt(10)
+    r = hint.add_run(
+        "Select all (Ctrl+A) then change Font / Font size in the toolbar. "
+        "Edit any title or page number. Add or delete dots in the middle column."
+    )
+    _set_run_simple(r, size=10, bold=False)
+    r.italic = True
+
     table = doc.add_table(rows=0, cols=3)
-    table.autofit = True
+    table.allow_autofit = True
 
     def add_row(left, page, *, bold=False, section=False):
         row = table.add_row()
         c0, c1, c2 = row.cells
-        c0.width = Mm(110)
-        c1.width = Mm(50)
-        c2.width = Mm(16)
+        c0.width = Mm(95)
+        c1.width = Mm(55)
+        c2.width = Mm(18)
         p = c0.paragraphs[0]
-        p.paragraph_format.space_before = Pt(1)
-        p.paragraph_format.space_after = Pt(1)
+        p.paragraph_format.space_before = Pt(2)
+        p.paragraph_format.space_after = Pt(2)
+        p.paragraph_format.line_spacing = 1.15
         if section:
             p.paragraph_format.left_indent = Cm(0.5)
             head, _, tail = left.partition(" ")
@@ -879,22 +900,14 @@ def build_toc_word():
             _set_run_simple(r, size=12, bold=False)
         else:
             _set_run_simple(p.add_run(left), size=12, bold=bold)
-        c1.text = ""
-        tcPr = c1._tc.get_or_add_tcPr()
-        borders = OxmlElement("w:tcBorders")
-        for edge in ("top", "left", "right"):
-            el = OxmlElement(f"w:{edge}")
-            el.set(qn("w:val"), "nil")
-            borders.append(el)
-        bot = OxmlElement("w:bottom")
-        bot.set(qn("w:val"), "dotted")
-        bot.set(qn("w:sz"), "12")
-        bot.set(qn("w:space"), "1")
-        bot.set(qn("w:color"), "000000")
-        borders.append(bot)
-        tcPr.append(borders)
+        p1 = c1.paragraphs[0]
+        p1.paragraph_format.space_before = Pt(2)
+        p1.paragraph_format.space_after = Pt(2)
+        _set_run_simple(p1.add_run(DOTS), size=12, bold=False)
         p2 = c2.paragraphs[0]
         p2.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        p2.paragraph_format.space_before = Pt(2)
+        p2.paragraph_format.space_after = Pt(2)
         _set_run_simple(p2.add_run(str(page)), size=12, bold=bold)
 
     for ch_title, ch_page, secs in TOC:
@@ -908,45 +921,58 @@ def build_toc_word():
     doc.save(out)
     print("wrote", out)
     build_toc_html()
-    build_toc_pages_docx()
+    import shutil
+
+    art = Path("/opt/cursor/artifacts")
+    art.mkdir(parents=True, exist_ok=True)
+    shutil.copy(out, art / "Table_of_Contents_EDITABLE.docx")
 
 
 def build_toc_html():
-    def line_html(text, page, *, chapter=False, section=False):
-        n = _leader_count(
-            text, page, bold=chapter, indent_cm=0.7 if section else 0.0
-        )
-        dots = ". " * n
-        pad = "padding-left:22px;" if section else ""
-        weight = "font-weight:bold;" if chapter else ""
+    def row(left, page, *, chapter=False, section=False):
+        pad = "padding-left:18px;" if section else ""
+        weight = "font-weight:bold;" if chapter else "font-weight:normal;"
         if section:
-            head, _, tail = text.partition(" ")
-            body = f"<b>{escape(head)}</b> {escape(tail)} {dots}{escape(str(page))}"
+            head, _, tail = left.partition(" ")
+            title = f"<b>{escape(head)}</b> {escape(tail)}"
         else:
-            body = f"{escape(text)} {dots}{escape(str(page))}"
+            title = escape(left)
         return (
-            f'<div style="font-family:\'Times New Roman\',Times,serif;font-size:12pt;'
-            f'white-space:nowrap;{pad}{weight}margin:2px 0;">{body}</div>'
+            "<tr>"
+            f'<td style="{pad}{weight}padding:3px 6px 3px 0;">{title}</td>'
+            f'<td style="padding:3px;">{DOTS}</td>'
+            f'<td style="text-align:right;{weight}padding:3px 0;width:48px;">'
+            f"{escape(str(page))}</td>"
+            "</tr>"
         )
 
     parts = [
         "<!DOCTYPE html>",
         '<html lang="en"><head><meta charset="utf-8"/>',
         "<title>TABLE OF CONTENTS</title></head><body>",
-        '<h1 style="text-align:center;font-family:\'Times New Roman\',Times,serif;'
-        'font-size:16pt;">TABLE OF CONTENTS</h1>',
+        '<p style="text-align:center;font-family:\'Times New Roman\',Times,serif;'
+        'font-size:16pt;font-weight:bold;">TABLE OF CONTENTS</p>',
+        '<p style="text-align:center;font-family:\'Times New Roman\',Times,serif;'
+        'font-size:10pt;font-style:italic;">'
+        "Open with Google Docs. Click any word to edit. Select all, then change "
+        "font size in the toolbar. Dots are normal text in the middle column."
+        "</p>",
+        '<table style="width:100%;border-collapse:collapse;'
+        "font-family:'Times New Roman',Times,serif;font-size:12pt;\">",
     ]
     for ch_title, ch_page, secs in TOC:
-        parts.append(line_html(ch_title, ch_page, chapter=True))
+        parts.append(row(ch_title, ch_page, chapter=True))
         for s, sp in secs:
-            parts.append(line_html(s, sp, section=True))
-        parts.append("<div style='height:8px'></div>")
+            parts.append(row(s, sp, section=True))
     for name, page in BACK:
-        parts.append(line_html(name, page, chapter=True))
-    parts.append("</body></html>")
+        parts.append(row(name, page, chapter=True))
+    parts.append("</table></body></html>")
     out = CH / "Table_of_Contents.html"
     out.write_text("\n".join(parts), encoding="utf-8")
     print("wrote", out)
+    import shutil
+
+    shutil.copy(out, Path("/opt/cursor/artifacts") / "Table_of_Contents.html")
 
 
 def export_toc_pngs():
@@ -1018,3 +1044,4 @@ if __name__ == "__main__":
     build_pdfs()
     build_word()
     build_toc_word()
+    build_toc_pages_docx()
