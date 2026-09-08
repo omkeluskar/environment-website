@@ -441,12 +441,9 @@ var FEEDBACK_ITEMS_ = [
 
 
 def main():
-    logo = prepare_logo()
-    build_pdfs(logo)
-    build_docx(SURVEY_DOCX, "Survey Questionnaire", SURVEY, 94)
-    build_docx(FEEDBACK_DOCX, "Feedback Questionnaire", FEEDBACK, 95)
-    script = ROOT / "scripts/Create_CEP_Google_Forms.gs"
-    script.write_text(APPS_SCRIPT)
+    # Keep the original college PDF layout. Do not redraw these pages.
+    from restore_original_forms import main as restore
+    restore()
     print("wrote", script)
 
 
