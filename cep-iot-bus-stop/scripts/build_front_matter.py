@@ -9,9 +9,9 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_TAB_ALIGNMENT, WD_TAB_LEADER
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Cm, Inches, Pt, RGBColor, Twips
+from docx.shared import Cm, Emu, Inches, Mm, Pt, RGBColor, Twips
 from reportlab.lib.colors import HexColor, black, white
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import A4, letter
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
@@ -170,8 +170,8 @@ BACK = [
 ]
 
 
-def border(c, inset=22):
-    W, H = letter
+def border(c, inset=22, pagesize=letter):
+    W, H = pagesize
     c.setStrokeColor(black)
     c.setLineWidth(1.0)
     c.rect(inset, inset, W - 2 * inset, H - 2 * inset)
@@ -483,8 +483,8 @@ def toc_entry(c, left, right, y, text, page, *, bold=False, size=12, section=Fal
 
 
 def draw_toc_pages(c):
-    W, H = letter
-    left, right = 54, W - 54
+    W, H = A4
+    left, right = 48, W - 48
     first = True
 
     def new_page():
@@ -492,8 +492,8 @@ def draw_toc_pages(c):
         if not first:
             c.showPage()
         first = False
-        border(c)
-        return H - 52
+        border(c, pagesize=A4)
+        return H - 48
 
     y = new_page()
     c.setFont(TNRB, 16)
@@ -530,9 +530,10 @@ def build_pdfs():
     draw_proposal(c)
     c.save()
     toc = CH / "Table_of_Contents.pdf"
-    c = canvas.Canvas(str(toc), pagesize=letter)
+    c = canvas.Canvas(str(toc), pagesize=A4)
     draw_toc_pages(c)
     c.save()
+    export_toc_pngs()
     # combined
     import pymupdf
     out = CH / "Front_Matter.pdf"
@@ -845,13 +846,64 @@ def add_leader_para(doc, text, page, *, bold=False, section=False):
 def build_toc_word():
     doc = Document()
     sec = doc.sections[0]
-    sec.page_width = Inches(8.5)
-    sec.page_height = Inches(11)
-    sec.left_margin = Inches(0.9)
-    sec.right_margin = Inches(0.9)
-    sec.top_margin = Inches(0.85)
-    sec.bottom_margin = Inches(0.85)
-    write_toc_body(doc, page_breaks=True)
+    sec.page_width = Mm(210)
+    sec.page_height = Mm(297)
+    sec.left_margin = Mm(18)
+    sec.right_margin = Mm(18)
+    sec.top_margin = Mm(16)
+    sec.bottom_margin = Mm(16)
+
+    title = doc.add_paragraph()
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    title.paragraph_format.space_after = Pt(14)
+    _set_run_simple(title.add_run("TABLE OF CONTENTS"), size=16, bold=True)
+
+    table = doc.add_table(rows=0, cols=3)
+    table.autofit = True
+
+    def add_row(left, page, *, bold=False, section=False):
+        row = table.add_row()
+        c0, c1, c2 = row.cells
+        c0.width = Mm(110)
+        c1.width = Mm(50)
+        c2.width = Mm(16)
+        p = c0.paragraphs[0]
+        p.paragraph_format.space_before = Pt(1)
+        p.paragraph_format.space_after = Pt(1)
+        if section:
+            p.paragraph_format.left_indent = Cm(0.5)
+            head, _, tail = left.partition(" ")
+            r = p.add_run(head + " ")
+            _set_run_simple(r, size=12, bold=True)
+            r = p.add_run(tail)
+            _set_run_simple(r, size=12, bold=False)
+        else:
+            _set_run_simple(p.add_run(left), size=12, bold=bold)
+        c1.text = ""
+        tcPr = c1._tc.get_or_add_tcPr()
+        borders = OxmlElement("w:tcBorders")
+        for edge in ("top", "left", "right"):
+            el = OxmlElement(f"w:{edge}")
+            el.set(qn("w:val"), "nil")
+            borders.append(el)
+        bot = OxmlElement("w:bottom")
+        bot.set(qn("w:val"), "dotted")
+        bot.set(qn("w:sz"), "12")
+        bot.set(qn("w:space"), "1")
+        bot.set(qn("w:color"), "000000")
+        borders.append(bot)
+        tcPr.append(borders)
+        p2 = c2.paragraphs[0]
+        p2.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        _set_run_simple(p2.add_run(str(page)), size=12, bold=bold)
+
+    for ch_title, ch_page, secs in TOC:
+        add_row(ch_title, ch_page, bold=True)
+        for s, sp in secs:
+            add_row(s, sp, section=True)
+    for name, page in BACK:
+        add_row(name, page, bold=True)
+
     out = CH / "Table_of_Contents.docx"
     doc.save(out)
     print("wrote", out)
@@ -897,35 +949,68 @@ def build_toc_html():
     print("wrote", out)
 
 
-def build_toc_pages_docx():
-    """Word file made from the PDF pages so Google Docs shows the exact dotted TOC."""
+def export_toc_pngs():
     import pymupdf
+    import zipfile
+    import shutil
 
-    pdf_path = CH / "Table_of_Contents.pdf"
-    pdf = pymupdf.open(pdf_path)
+    pdf = pymupdf.open(CH / "Table_of_Contents.pdf")
+    img_dir = CH / "toc_pages"
+    img_dir.mkdir(parents=True, exist_ok=True)
+    art = Path("/opt/cursor/artifacts")
+    art.mkdir(parents=True, exist_ok=True)
+    shots = Path("/opt/cursor/artifacts/screenshots")
+    shots.mkdir(parents=True, exist_ok=True)
+    pngs = []
+    for i, page in enumerate(pdf):
+        pix = page.get_pixmap(matrix=pymupdf.Matrix(2.4, 2.4), alpha=False)
+        name = f"TOC_page_{i + 1}.png"
+        dest = img_dir / name
+        pix.save(str(dest))
+        pngs.append(dest)
+        shutil.copy(dest, art / name)
+        pix2 = page.get_pixmap(matrix=pymupdf.Matrix(1.5, 1.5), alpha=False)
+        pix2.save(str(shots / name))
+    shutil.copy(CH / "Table_of_Contents.pdf", art / "Table_of_Contents.pdf")
+    zpath = art / "TOC_insert_into_Google_Docs.zip"
+    with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.write(CH / "Table_of_Contents.pdf", "Table_of_Contents.pdf")
+        for p in pngs:
+            zf.write(p, p.name)
+    print("wrote", img_dir, zpath)
+    return pngs
+
+
+def build_toc_pages_docx():
+    """One A4 Word page per TOC PNG — Google Docs must not reflow text."""
+    pngs = list((CH / "toc_pages").glob("TOC_page_*.png"))
+    pngs.sort()
+    if not pngs:
+        pngs = export_toc_pngs()
     doc = Document()
     sec = doc.sections[0]
-    sec.page_width = Inches(8.5)
-    sec.page_height = Inches(11)
-    sec.left_margin = Inches(0.4)
-    sec.right_margin = Inches(0.4)
-    sec.top_margin = Inches(0.4)
-    sec.bottom_margin = Inches(0.4)
-    tmp = Path("/tmp/toc_page_imgs")
-    tmp.mkdir(parents=True, exist_ok=True)
-    for i, page in enumerate(pdf):
-        pix = page.get_pixmap(matrix=pymupdf.Matrix(2.2, 2.2), alpha=False)
-        img = tmp / f"page_{i + 1}.png"
-        pix.save(str(img))
+    sec.page_width = Mm(210)
+    sec.page_height = Mm(297)
+    sec.left_margin = Mm(0)
+    sec.right_margin = Mm(0)
+    sec.top_margin = Mm(0)
+    sec.bottom_margin = Mm(0)
+    for i, img in enumerate(pngs):
         if i:
             doc.add_page_break()
         p = doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.paragraph_format.space_before = Pt(0)
-        p.paragraph_format.space_after = Pt(0)
-        p.add_run().add_picture(str(img), width=Inches(7.7))
+        pf = p.paragraph_format
+        pf.space_before = Pt(0)
+        pf.space_after = Pt(0)
+        pf.line_spacing = 1.0
+        p.add_run().add_picture(str(img), width=Mm(210), height=Mm(297))
     out = CH / "Table_of_Contents_PAGES.docx"
     doc.save(out)
+    Path("/opt/cursor/artifacts").mkdir(parents=True, exist_ok=True)
+    import shutil
+
+    shutil.copy(out, Path("/opt/cursor/artifacts") / out.name)
     print("wrote", out)
 
 
