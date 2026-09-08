@@ -522,9 +522,8 @@ def build_pdfs():
     draw_cover(c)
     c.save()
     cert = CH / "Certificate_of_Project_Completion.pdf"
-    c = canvas.Canvas(str(cert), pagesize=letter)
-    draw_certificate(c)
-    c.save()
+    # Certificate, proposal, and questionnaires are copied from the
+    # original college PDF by scripts/restore_original_forms.py.
     prop = CH / "Project_Proposal_Approval_Sheet.pdf"
     # Proposal/survey pages come from the original college PDFs
     # (scripts/restore_original_forms.py). Do not redraw them here.
