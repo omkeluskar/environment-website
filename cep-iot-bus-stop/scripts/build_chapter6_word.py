@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Chapter 6 Word/PDF from the student's text, with tables added only."""
+"""Chapter 6 matching the student's PDF. Only extra mark: [13] in 6.6."""
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -12,7 +12,6 @@ from docx.shared import Cm, Inches, Pt, RGBColor
 
 ROOT = Path("/workspace/cep-iot-bus-stop")
 OUT_DOCX = ROOT / "chapters/Chapter_6_Community_Deployment_and_Impact_Assessment.docx"
-OUT_PDF = ROOT / "chapters/Chapter_6_Community_Deployment_and_Impact_Assessment.pdf"
 FIG = ROOT / "figures/figure_6_1_satisfaction.png"
 TITLE = (
     "IoT-Based Bus Stop System for Public Transport Overcrowding "
@@ -81,10 +80,10 @@ def shade_cell(cell, fill=NAVY):
     tcPr.append(shd)
 
 
-def set_cell(cell, text, *, header=False, size=9, center=False):
+def set_cell(cell, text, *, header=False, size=9):
     cell.text = ""
     p = cell.paragraphs[0]
-    pfmt(p, align="center" if center or header else "left", before=2, after=2, line=12)
+    pfmt(p, align="left", before=2, after=2, line=12)
     r = p.add_run(text)
     set_run(
         r,
@@ -94,9 +93,8 @@ def set_cell(cell, text, *, header=False, size=9, center=False):
     )
 
 
-def add_table(doc, headers, rows, caption=None):
-    if caption:
-        add_caption(doc, caption)
+def add_table(doc, headers, rows, caption):
+    add_caption(doc, caption)
     tbl = doc.add_table(rows=1 + len(rows), cols=len(headers))
     tbl.style = "Table Grid"
     tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -158,13 +156,19 @@ def setup_header_footer(doc):
 
 def make_figure():
     FIG.parent.mkdir(parents=True, exist_ok=True)
-    labels = ["5 Very\nSatisfied", "4 Satisfied", "3 Neutral", "2 Dissatisfied", "1 Very\nDissatisfied"]
+    labels = [
+        "5 — Very\nSatisfied",
+        "4 — Satisfied",
+        "3 — Neutral",
+        "2 — Dissatisfied",
+        "1 — Very\nDissatisfied",
+    ]
     values = [18, 5, 2, 0, 0]
     fig, ax = plt.subplots(figsize=(7.2, 3.6), dpi=160)
     bars = ax.bar(labels, values, color="#1F4E79", width=0.62)
-    ax.set_ylabel("Number of respondents")
+    ax.set_ylabel("No. of Respondents")
     ax.set_ylim(0, 22)
-    ax.set_title("Post-deployment satisfaction ratings (n = 25)")
+    ax.set_title("Post-Deployment Satisfaction Rating Distribution")
     for b, v in zip(bars, values):
         ax.text(b.get_x() + b.get_width() / 2, v + 0.3, str(v), ha="center", fontsize=9)
     ax.spines["top"].set_visible(False)
@@ -183,8 +187,8 @@ def build():
     style._element.rPr.rFonts.set(qn("w:eastAsia"), TNR)
     setup_header_footer(doc)
 
-    add_title(doc, "CHAPTER 6", size=16, after=4, before=6)
-    add_title(doc, "COMMUNITY DEPLOYMENT AND IMPACT ASSESSMENT", size=14, after=16)
+    add_title(doc, "CHAPTER 6: COMMUNITY DEPLOYMENT AND", size=16, after=2, before=6)
+    add_title(doc, "IMPACT ASSESSMENT", size=16, after=16)
 
     add_h(doc, "6.1 BENEFICIARY PROFILE")
     add_body(
@@ -222,38 +226,6 @@ def build():
         "the V7 button was used for controlled subtraction, while the V8 display showed the minutes "
         "since the last confirmed crossing before the operator applied the correction.",
     )
-    add_table(
-        doc,
-        ["Beneficiary", "Need", "System response"],
-        [
-            [
-                "Daily commuters",
-                "Glanceable crowding status without a mobile application",
-                "Red and green LED indicators at the stop",
-            ],
-            [
-                "Transit / depot staff",
-                "Remote risk indication for dispatch decisions",
-                "Blynk dashboard and Telegram alerts",
-            ],
-            [
-                "Depot administrators",
-                "Low-cost, low-maintenance solution with no subscription",
-                "Hardware under ₹1,500 and free-tier APIs",
-            ],
-            [
-                "Field technicians",
-                "Modular hardware that is easy to replace",
-                "ESP32 with I2C/GPIO on a 3.3 V rail",
-            ],
-            [
-                "Academic evaluators",
-                "Documented IoT and machine-learning prototype",
-                "Locked formula, pin map, CSV log, and CEP report",
-            ],
-        ],
-        caption="Table 6.1: Beneficiary Profile",
-    )
 
     add_h(doc, "6.2 COMMUNITY ENGAGEMENT ACTIVITIES")
     add_body(
@@ -262,33 +234,6 @@ def build():
         "the Dindoshi Bus Depot. The activities included direct observation, a structured commuter "
         "survey, informal interviews with depot staff, and coordination with the project guide to "
         "ensure the prototype met both academic and operational requirements.",
-    )
-    add_table(
-        doc,
-        ["Activity", "Participants / setting", "Outcome for the design"],
-        [
-            [
-                "Direct observation",
-                "Route 326 boarding edge, morning and evening peaks",
-                "Confirmed reactive crowding and the need for automated sensing and alerts",
-            ],
-            [
-                "Commuter survey",
-                "25 regular BEST commuters around Dindoshi",
-                "On-site LEDs, fast alerts, and subtract-not-reset count behaviour",
-            ],
-            [
-                "Staff interviews",
-                "3 depot staff during peak hours",
-                "Human-controlled V7 correction with V8 evidence",
-            ],
-            [
-                "Guide coordination",
-                "Project guide",
-                "Academic CEP requirements kept aligned with transit use",
-            ],
-        ],
-        caption="Table 6.2: Community Engagement Activities",
     )
     add_body(
         doc,
@@ -311,23 +256,6 @@ def build():
         "gradually after a bus departed rather than being reset completely to zero. The most "
         "frequently reported frustration was the complete absence of any warning before crowding "
         "became excessive.",
-    )
-    add_table(
-        doc,
-        ["Survey finding (n = 25)", "Result"],
-        [
-            ["Preferred an on-site physical display instead of a mobile application", "84% (21 of 25)"],
-            ["Wanted an overcrowding alert within 30 seconds", "92% (23 of 25)"],
-            [
-                "Expected the passenger count to decrease after a bus departed, not reset to zero",
-                "76% (19 of 25)",
-            ],
-            [
-                "Most frequent frustration",
-                "No warning before crowding became excessive",
-            ],
-        ],
-        caption="Table 6.3: Commuter Survey Findings",
     )
     add_body(
         doc,
@@ -357,7 +285,7 @@ def build():
     )
     add_table(
         doc,
-        ["Location", "Date / duration", "Participants", "Setup details"],
+        ["Location", "Date/Duration", "Participants", "Setup Details"],
         [
             [
                 "Dindoshi Bus Depot, Route 326 boarding edge",
@@ -366,7 +294,7 @@ def build():
                 "ESP32 with VL53L0X + DHT22, laptop running brain.py, Blynk dashboard, Telegram bot, CSV logging cleared before each session",
             ],
         ],
-        caption="Table 6.4: Pilot Deployment Details",
+        "Table 6.1: Pilot Deployment Details",
     )
     add_body(
         doc,
@@ -376,16 +304,6 @@ def build():
         "when applicable. The score was capped at 98. Scores from 0 to 40 were classified as "
         "NORMAL, scores from 41 to 75 were classified as WARNING, and scores above 75 were "
         "classified as CRITICAL. Exactly 75 remained WARNING.",
-    )
-    add_table(
-        doc,
-        ["Risk score", "Status", "On-site indication"],
-        [
-            ["0 – 40", "NORMAL", "Green LED"],
-            ["41 – 75 (including 75.0)", "WARNING", "No green / no red critical LED"],
-            ["> 75", "CRITICAL", "Red LED + Telegram alert"],
-        ],
-        caption="Table 6.5: Risk Classification Used in the Pilot",
     )
     add_body(
         doc,
@@ -405,16 +323,6 @@ def build():
         "conditions that did not qualify for heat or rush-hour bonuses. The resulting score was "
         "15.0%, which was classified as NORMAL, and the green LED activated.",
     )
-    add_table(
-        doc,
-        ["Scenario", "Count", "Rain", "Time", "Temp.", "Risk", "Class", "Output"],
-        [
-            ["1", "45", "Yes", "17:30", "30°C", "90.0%", "CRITICAL", "Red LED; Telegram 0.81 s"],
-            ["2", "30", "Yes", "17:30", "30°C", "65.0%", "WARNING", "No Telegram; no LED"],
-            ["3", "0", "Yes", "Not rush / not heat", "—", "15.0%", "NORMAL", "Green LED"],
-        ],
-        caption="Table 6.6: Pilot Demonstration Scenarios",
-    )
     add_body(
         doc,
         "The operator function was also tested after a simulated bus departure. A staff member "
@@ -428,20 +336,6 @@ def build():
         "10.51 ms, and the CSV append operation was recorded as 0.00 ms at the available timing "
         "precision. The VL53L0X was polled every 150 ms, brain.py operated on a five-second cycle, "
         "and Telegram alerts used a 60-second cooldown.",
-    )
-    add_table(
-        doc,
-        ["Measurement", "Value"],
-        [
-            ["Blynk round-trip time", "891 ms"],
-            ["Random Forest prediction", "10.51 ms"],
-            ["CSV append", "0.00 ms (timer precision)"],
-            ["VL53L0X poll interval", "150 ms"],
-            ["brain.py cycle", "5 seconds"],
-            ["Telegram alert cooldown", "60 seconds"],
-            ["V7 operator test", "Count 50 → 20 (subtract 30, not reset)"],
-        ],
-        caption="Table 6.7: Pilot Timing and Operator Check",
     )
 
     add_h(doc, "6.4 USER TRAINING")
@@ -460,16 +354,6 @@ def build():
         "and then press V7 once for each bus departure. This procedure maintained human control "
         "and reduced the possibility of an unsupported count correction.",
     )
-    add_table(
-        doc,
-        ["Audience", "Training point"],
-        [
-            ["Commuters", "Green LED = NORMAL; red LED = CRITICAL overcrowding (not a fire alarm)"],
-            ["Depot staff", "Check V8, then press V7 once per confirmed bus departure"],
-            ["All participants", "Five-minute walkthrough of ESP32, Blynk, Telegram, and LEDs"],
-        ],
-        caption="Table 6.8: User Training Summary",
-    )
     add_body(
         doc,
         "One staff member initially pressed V7 twice in rapid succession. The mistake was handled "
@@ -479,38 +363,13 @@ def build():
         "meaning of the indicator was clarified within seconds. These observations demonstrated "
         "the importance of brief operational instructions and clear on-device labels.",
     )
-    add_table(
-        doc,
-        ["Issue observed in training", "Correction"],
-        [
-            ["Staff member pressed V7 twice in rapid succession", "Repeated one-press-per-departure rule"],
-            [
-                "Commuter confused red LED with a fire alarm",
-                "Meaning clarified within seconds; labels emphasised",
-            ],
-            [
-                "Telegram 60 s cooldown mistaken as a V7 lockout",
-                "Clarified that cooldown applies only to Telegram alerts",
-            ],
-        ],
-        caption="Table 6.9: Training Issues and Corrections",
-    )
 
     add_h(doc, "6.5 FEEDBACK COLLECTION")
     add_body(
         doc,
-        "Feedback was collected using a digital form [13] and a physical notebook during in-person "
+        "Feedback was collected using a digital form and a physical notebook during in-person "
         "conversations. The two methods allowed participants to provide structured ratings as well "
         "as short comments about usability, trust, operational value, and desired improvements.",
-    )
-    add_table(
-        doc,
-        ["Method", "What it captured"],
-        [
-            ["Digital form [13]", "Structured ratings on ease, trust, Telegram usefulness, overall score"],
-            ["Physical notebook", "Short in-person comments on usability and improvements"],
-        ],
-        caption="Table 6.10: Feedback Collection Methods",
     )
     add_body(
         doc,
@@ -518,18 +377,6 @@ def build():
         "the red and green LED indicators, how useful the Telegram alert was for their workflow, "
         "how they would rate the overall system, and what they would improve. The questions were "
         "kept short and plain so that all participants could respond without technical knowledge.",
-    )
-    add_table(
-        doc,
-        ["No.", "Question theme"],
-        [
-            ["1", "How easy the system was to understand"],
-            ["2", "Whether they would trust the red and green LED indicators"],
-            ["3", "How useful the Telegram alert was for their workflow"],
-            ["4", "Overall system rating"],
-            ["5", "What they would improve"],
-        ],
-        caption="Table 6.11: Feedback Questions",
     )
     add_body(
         doc,
@@ -543,7 +390,7 @@ def build():
     add_h(doc, "6.6 FEEDBACK ANALYSIS")
     add_body(
         doc,
-        "The collected feedback was systematically analysed to identify repeating patterns and "
+        "The collected feedback [13] was systematically analysed to identify repeating patterns and "
         "common opinions across the participant groups. The most frequent positive comments "
         "highlighted the simplicity of the LED indicators and the value of receiving crowding "
         "information without requiring a mobile application. Participants appreciated the immediate "
@@ -560,7 +407,7 @@ def build():
     )
     add_table(
         doc,
-        ["Rating (out of 5)", "No. of respondents", "Percentage (%)"],
+        ["Rating (out of 5)", "No. of Respondents", "Percentage (%)"],
         [
             ["5 — Very Satisfied", "18", "72.0%"],
             ["4 — Satisfied", "5", "20.0%"],
@@ -569,7 +416,7 @@ def build():
             ["1 — Very Dissatisfied", "0", "0.0%"],
             ["Total", "25", "100%"],
         ],
-        caption="Table 6.12: Post-Deployment Satisfaction Rating Distribution",
+        "Table 6.2: Post-Deployment Satisfaction Rating Distribution",
     )
     add_body(
         doc,
@@ -593,40 +440,40 @@ def build():
     )
     add_table(
         doc,
-        ["Indicator", "Before deployment", "After deployment", "Change"],
+        ["Indicator", "Before Deployment", "After Deployment", "Change"],
         [
             [
                 "Crowding awareness",
                 "No objective method; manual visual guesswork",
                 "Continuous 5-second automated risk scoring",
-                "Subjective to objective",
+                "Subjective to Objective",
             ],
             [
                 "Alert response time",
                 "Reactive; delay of minutes to hours",
                 "0.81 seconds Telegram delivery on CRITICAL breach",
-                "Minutes to sub-second",
+                "Minutes to Sub-second",
             ],
             [
                 "Historical data",
                 "No records; complaint-based only",
                 "Continuous CSV logging every 5 seconds",
-                "None to persistent record",
+                "None to Persistent record",
             ],
             [
                 "Operator workflow",
                 "No standardised correction method",
                 "V7 push button with V8 evidence display",
-                "None to human-in-the-loop control",
+                "None to Human-in-the-loop control",
             ],
             [
                 "Cost per stop",
                 "High (industrial APC) or free but ineffective (manual)",
                 "Under ₹1,500 (ESP32 hardware) + free APIs",
-                "Prohibitive to affordable",
+                "Prohibitive to Affordable",
             ],
         ],
-        caption="Table 6.13: Impact Assessment",
+        "Table 6.3: Impact Assessment",
     )
     add_body(
         doc,
@@ -645,7 +492,7 @@ def build():
     )
     add_table(
         doc,
-        ["Expected outcome", "Achieved?", "Evidence"],
+        ["Expected Outcome", "Achieved?", "Evidence"],
         [
             [
                 "Commuters receive instant on-site crowding awareness",
@@ -660,7 +507,7 @@ def build():
             [
                 "System accurately predicts overcrowding risk",
                 "Yes",
-                "90.0% at 45 pax with rain, 65.0% at 30 pax, 15.0% at 0 pax — matches formula exactly",
+                "90.0% risk at full capacity with rain, 65.0% at 30 pax, 15.0% at 0 pax — matches formula exactly",
             ],
             [
                 "Operator can safely correct passenger count",
@@ -678,7 +525,7 @@ def build():
                 "bus_stop_log.csv appended every 5-second cycle",
             ],
         ],
-        caption="Table 6.14: Outcome Achievement Matrix",
+        "Table 6.4: Outcome Achievement Matrix",
     )
     add_body(
         doc,
@@ -716,25 +563,6 @@ def build():
         "additional directional sensor could distinguish passengers entering from those leaving. "
         "These developments would improve the long-term viability of the system across Mumbai's "
         "public transport network.",
-    )
-    add_table(
-        doc,
-        ["Dimension", "How it is sustained"],
-        [
-            [
-                "Operational",
-                "Low daily maintenance; replace VL53L0X, DHT22, or LEDs on the 3.3 V modular rail",
-            ],
-            [
-                "Technical",
-                "Open-source Python/Arduino, documented pins and thresholds, CSV log for later retraining",
-            ],
-            [
-                "Future expansion",
-                "More ESP32 nodes, MySQL/Firebase, solar power, second directional sensor",
-            ],
-        ],
-        caption="Table 6.15: Sustainability Plan",
     )
 
     doc.save(OUT_DOCX)
