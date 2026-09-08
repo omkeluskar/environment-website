@@ -395,32 +395,22 @@ def draw_proposal(c):
     c.drawCentredString(W / 2, y, f"Academic Year {YEAR_SHORT}")
     y -= 36
     rows = [
-        f"1.  Name of the Students:  {STUDENTS}",
-        f"2.  Seat Number:  {SEAT_A}, {SEAT_B}",
-        None,  # first-submission line drawn separately
-        f"4.  Name of the Guide:  {GUIDE}",
-        "5.  Teaching Experience of the Guide:  26 Years",
+        (f"1.  Name of the Students:  {STUDENTS}", False),
+        (f"2.  Seat Number:  {SEAT_A}, {SEAT_B}", False),
+        ("3.  Is this your first submission?     Yes            No", True),
+        (f"4.  Name of the Guide:  {GUIDE}", False),
+        ("5.  Teaching Experience of the Guide:  26 Years", False),
     ]
-    c.setFont(TNRB, 12)
-    c.drawString(50, y, rows[0])
-    y -= 24
-    c.drawString(50, y, rows[1])
-    y -= 24
-    c.drawString(50, y, "3.  Is this your first submission?")
-    c.setFont(TNRB, 12)
-    c.setLineWidth(1.05)
-    yes_x = 292
-    c.drawString(yes_x, y, "Yes")
-    c.rect(yes_x + 26, y - 2, 11, 11, stroke=1, fill=0)
-    no_x = yes_x + 54
-    c.drawString(no_x, y, "No")
-    c.rect(no_x + 22, y - 2, 11, 11, stroke=1, fill=0)
-    y -= 24
-    c.setFont(TNRB, 12)
-    c.drawString(50, y, rows[3])
-    y -= 24
-    c.drawString(50, y, rows[4])
-    y -= 28
+    c.setFont(TNR, 12)
+    for text, boxes in rows:
+        c.setFont(TNRB, 12)
+        c.drawString(50, y, text)
+        if boxes:
+            c.setLineWidth(1)
+            c.rect(318, y - 1, 11, 11, stroke=1, fill=0)
+            c.rect(400, y - 1, 11, 11, stroke=1, fill=0)
+        y -= 22
+    y -= 18
     para = (
         f'The proposed project titled "{TITLE}." submitted by the above students, '
         f"has been examined and found suitable for the partial fulfilment of the "
@@ -431,9 +421,7 @@ def draw_proposal(c):
     for line in wrap(c, para, TNR, 12, W - 100):
         c.drawString(50, y, line)
         y -= 16
-    # Signatures follow the paragraph immediately so the sheet stays one
-    # continuous page (no empty band that looks like a page break).
-    y -= 36
+    y = 150
     c.setStrokeColor(black)
     c.setLineWidth(1)
     c.line(50, y, 230, y)
@@ -538,9 +526,8 @@ def build_pdfs():
     draw_certificate(c)
     c.save()
     prop = CH / "Project_Proposal_Approval_Sheet.pdf"
-    c = canvas.Canvas(str(prop), pagesize=letter)
-    draw_proposal(c)
-    c.save()
+    # Proposal/survey pages come from the original college PDFs
+    # (scripts/restore_original_forms.py). Do not redraw them here.
     toc = CH / "Table_of_Contents.pdf"
     c = canvas.Canvas(str(toc), pagesize=A4)
     draw_toc_pages(c)
@@ -640,7 +627,7 @@ def write_proposal_word(doc):
     for line in [
         f"1.  Name of the Students:  {STUDENTS}",
         f"2.  Seat Number:  {SEAT_A}, {SEAT_B}",
-        "3.  Is this your first submission?     Yes  [ ]      No  [ ]",
+        "3.  Is this your first submission?     Yes  ☐     No  ☐",
         f"4.  Name of the Guide:  {GUIDE}",
         "5.  Teaching Experience of the Guide:  26 Years",
     ]:
@@ -648,7 +635,7 @@ def write_proposal_word(doc):
         pfmt(p, align="left", after=6, line=16)
         set_run(p.add_run(line), size=12, bold=True)
     p = doc.add_paragraph()
-    pfmt(p, align="both", before=8, after=10, line=18)
+    pfmt(p, align="both", before=10, after=12, line=18)
     set_run(
         p.add_run(
             f'The proposed project titled "{TITLE}." submitted by the above students, '
@@ -658,39 +645,12 @@ def write_proposal_word(doc):
         ),
         size=12,
     )
-    sig = doc.add_table(rows=2, cols=2)
-    sig.autofit = True
-    sig.cell(0, 0).text = "________________________"
-    sig.cell(0, 1).text = "________________________"
-    sig.cell(1, 0).text = "Signature of Guide\nDate:"
-    sig.cell(1, 1).text = "Signature of Co-ordinator\nDate:"
-    for row in sig.rows:
-        for ci, cell in enumerate(row.cells):
-            for para in cell.paragraphs:
-                pfmt(para, align="right" if ci == 1 else "left", after=2, line=16)
-                for run in para.runs:
-                    set_run(run, size=11)
-            tc = cell._tc
-            tcPr = tc.get_or_add_tcPr()
-            borders = OxmlElement("w:tcBorders")
-            for edge in ("top", "left", "bottom", "right"):
-                el = OxmlElement(f"w:{edge}")
-                el.set(qn("w:val"), "nil")
-                borders.append(el)
-            tcPr.append(borders)
-
-
-def _new_letter_doc():
-    doc = Document()
-    sec = doc.sections[0]
-    sec.page_width = Inches(8.5)
-    sec.page_height = Inches(11)
-    sec.left_margin = Cm(2.2)
-    sec.right_margin = Cm(2.2)
-    sec.top_margin = Cm(1.8)
-    sec.bottom_margin = Cm(1.8)
-    page_border(sec)
-    return doc
+    p = doc.add_paragraph()
+    pfmt(p, align="left", after=4)
+    set_run(p.add_run("Signature of Guide                          Signature of Co-ordinator"), size=11)
+    p = doc.add_paragraph()
+    pfmt(p, align="left")
+    set_run(p.add_run("Date:                                                Date:"), size=11)
 
 
 def build_word():
@@ -819,11 +779,6 @@ def build_word():
     out = CH / "Front_Matter.docx"
     doc.save(out)
     print("wrote", out)
-    prop_doc = _new_letter_doc()
-    write_proposal_word(prop_doc)
-    prop_path = CH / "Project_Proposal_Approval_Sheet.docx"
-    prop_doc.save(prop_path)
-    print("wrote", prop_path)
 
 
 def write_toc_body(doc, page_breaks=True):
