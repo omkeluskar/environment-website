@@ -72,12 +72,33 @@ def add_caption(doc, text):
     set_run(r, size=11, bold=True)
 
 
-def shade_cell(cell, fill=NAVY):
+def shade_cell(cell, fill=None):
+    """No fill — college tables print with a clear/white background."""
     tcPr = cell._tc.get_or_add_tcPr()
+    for child in list(tcPr):
+        if child.tag == qn("w:shd"):
+            tcPr.remove(child)
     shd = OxmlElement("w:shd")
-    shd.set(qn("w:fill"), fill)
     shd.set(qn("w:val"), "clear")
+    shd.set(qn("w:color"), "auto")
+    shd.set(qn("w:fill"), "FFFFFF")
     tcPr.append(shd)
+
+
+def clear_table_banding(tbl):
+    """Stop Word/LibreOffice from painting a blue first-row style."""
+    tblPr = tbl._tbl.tblPr
+    for child in list(tblPr):
+        if child.tag == qn("w:tblLook"):
+            tblPr.remove(child)
+    look = OxmlElement("w:tblLook")
+    look.set(qn("w:firstRow"), "0")
+    look.set(qn("w:lastRow"), "0")
+    look.set(qn("w:firstColumn"), "0")
+    look.set(qn("w:lastColumn"), "0")
+    look.set(qn("w:noHBand"), "1")
+    look.set(qn("w:noVBand"), "1")
+    tblPr.append(look)
 
 
 def set_cell(cell, text, *, header=False, size=9):
@@ -85,26 +106,37 @@ def set_cell(cell, text, *, header=False, size=9):
     p = cell.paragraphs[0]
     pfmt(p, align="left", before=2, after=2, line=12)
     r = p.add_run(text)
-    set_run(
-        r,
-        size=size,
-        bold=header,
-        color=RGBColor(255, 255, 255) if header else RGBColor(0, 0, 0),
-    )
+    set_run(r, size=size, bold=header, color=RGBColor(0, 0, 0))
+
+
+def table_borders(tbl):
+    tblPr = tbl._tbl.tblPr
+    for child in list(tblPr):
+        if child.tag in (qn("w:tblStyle"), qn("w:tblBorders")):
+            tblPr.remove(child)
+    borders = OxmlElement("w:tblBorders")
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        el = OxmlElement(f"w:{edge}")
+        el.set(qn("w:val"), "single")
+        el.set(qn("w:sz"), "4")
+        el.set(qn("w:space"), "0")
+        el.set(qn("w:color"), "000000")
+        borders.append(el)
+    tblPr.append(borders)
 
 
 def add_table(doc, headers, rows, caption):
     add_caption(doc, caption)
     tbl = doc.add_table(rows=1 + len(rows), cols=len(headers))
-    tbl.style = "Table Grid"
     tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
+    table_borders(tbl)
+    clear_table_banding(tbl)
     for i, h in enumerate(headers):
         shade_cell(tbl.rows[0].cells[i])
         set_cell(tbl.rows[0].cells[i], h, header=True)
     for ri, row in enumerate(rows):
-        fill = "F2F2F2" if ri % 2 else "FFFFFF"
         for ci, val in enumerate(row):
-            shade_cell(tbl.rows[ri + 1].cells[ci], fill)
+            shade_cell(tbl.rows[ri + 1].cells[ci])
             set_cell(tbl.rows[ri + 1].cells[ci], val)
     doc.add_paragraph()
 
